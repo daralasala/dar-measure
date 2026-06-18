@@ -105,6 +105,25 @@
   .profile-mini .pm-info .pm-sub{font-size:12px;color:var(--muted);}
   .admin-pill{font-size:10px;background:var(--brand-dark);color:#fff;padding:2px 8px;border-radius:10px;font-weight:600;}
   .hint{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;}
+
+  /* camera modal */
+  .cam-overlay{position:fixed;inset:0;background:#1a1a1a;display:none;flex-direction:column;z-index:200;}
+  .cam-overlay.active{display:flex;}
+  .cam-head{background:#000;color:#fff;padding:14px 16px;display:flex;align-items:center;gap:14px;font-size:15px;}
+  .cam-close{background:rgba(255,255,255,.15);border:none;color:#fff;width:32px;height:32px;border-radius:8px;font-size:16px;cursor:pointer;}
+  .cam-step{flex:1;padding:18px;overflow-y:auto;display:flex;flex-direction:column;}
+  .cam-ref-choice{background:#fff;border-radius:12px;padding:16px;margin-bottom:16px;}
+  .cam-ref-choice label{display:block;font-size:14px;margin-bottom:8px;color:#555;}
+  .cam-ref-choice select,.cam-ref-choice input{width:100%;padding:11px;border:1px solid var(--line);border-radius:9px;font-size:15px;font-family:inherit;background:var(--soft);}
+  .cam-photo-actions{margin-top:6px;}
+  .cam-instruction{background:var(--brand);color:#fff;padding:12px;border-radius:10px;text-align:center;font-size:15px;font-weight:600;margin-bottom:12px;}
+  .canvas-wrap{flex:1;display:flex;align-items:center;justify-content:center;background:#000;border-radius:10px;overflow:hidden;position:relative;min-height:300px;}
+  #camCanvas{max-width:100%;max-height:65vh;touch-action:none;display:block;}
+  .cam-controls{margin-top:14px;}
+  .cam-result{color:#fff;text-align:center;font-size:15px;margin-bottom:10px;min-height:22px;}
+  .cam-btns{display:flex;gap:10px;}
+  .cam-btns .btn{margin-top:0;}
+  .cam-final{background:var(--brand);color:#fff;border-radius:14px;padding:24px;text-align:center;font-size:30px;font-weight:700;}
 </style>
 </head>
 <body>
@@ -198,7 +217,8 @@
       <div class="field"><label data-i18n="depth">العمق (سم)</label><input type="number" id="mDepth" inputmode="decimal"></div>
     </div>
     <p class="hint" data-i18n="depthHint">العمق اختياري — للقطع ثلاثية الأبعاد مثل الخزائن</p>
-    <button class="btn" id="addMeasureBtn" data-i18n="addBtn" style="margin-top:10px;">إضافة</button>
+    <button class="btn btn-outline" id="openCameraBtn" data-i18n="cameraBtn" style="margin-top:10px;">📷 القياس بالكاميرا</button>
+    <button class="btn" id="addMeasureBtn" data-i18n="addBtn" style="margin-top:8px;">إضافة</button>
   </div>
 
   <div class="total-box">
@@ -229,8 +249,63 @@
   </div>
 </div>
 
+<!-- ===== CAMERA MEASURE MODAL ===== -->
+<div class="cam-overlay" id="camModal">
+  <div class="cam-head">
+    <button class="cam-close" id="camClose">✕</button>
+    <span id="camStepTitle" data-i18n="camStep1">الخطوة 1: التقط صورة</span>
+  </div>
+
+  <!-- step 0: choose ref + take photo -->
+  <div class="cam-step" id="camStepPhoto">
+    <div class="cam-ref-choice">
+      <label data-i18n="refChoose">اختر مرجع القياس:</label>
+      <select id="refType">
+        <option value="29.7" data-i18n-opt="refA4L">ورقة A4 — الطول (29.7 سم)</option>
+        <option value="21" data-i18n-opt="refA4W">ورقة A4 — العرض (21 سم)</option>
+        <option value="8.56" data-i18n-opt="refCard">بطاقة بنكية (8.56 سم)</option>
+        <option value="custom" data-i18n-opt="refCustom">مرجع مخصص (متر/مسطرة)</option>
+      </select>
+      <div id="customRefBox" style="display:none;margin-top:8px;">
+        <input type="number" id="customRefCm" inputmode="decimal" placeholder="الطول بالسنتيمتر">
+      </div>
+    </div>
+    <div class="cam-photo-actions">
+      <label class="btn" style="display:block;text-align:center;cursor:pointer;">
+        <span data-i18n="takePhoto">📷 التقط أو اختر صورة</span>
+        <input type="file" id="camFile" accept="image/*" capture="environment" style="display:none;">
+      </label>
+    </div>
+    <p class="hint" data-i18n="photoHint" style="text-align:center;margin-top:10px;">ضع المرجع (ورقة A4) على الجدار والتقط صورة من الأمام مباشرة</p>
+  </div>
+
+  <!-- step 1+2: canvas for tapping -->
+  <div class="cam-step" id="camStepCanvas" style="display:none;">
+    <div class="cam-instruction" id="camInstruction" data-i18n="tapRef">انقر على طرفي المرجع (نقطتان)</div>
+    <div class="canvas-wrap">
+      <canvas id="camCanvas"></canvas>
+    </div>
+    <div class="cam-controls">
+      <div class="cam-result" id="camResult"></div>
+      <div class="cam-btns">
+        <button class="btn btn-outline" id="camReset" data-i18n="reset">إعادة</button>
+        <button class="btn" id="camNext" data-i18n="next" disabled>التالي</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- step 3: assign result -->
+  <div class="cam-step" id="camStepAssign" style="display:none;">
+    <div class="cam-final" id="camFinal">—</div>
+    <p data-i18n="assignTo" style="text-align:center;margin:14px 0 10px;color:#555;">أضف هذا القياس إلى:</p>
+    <button class="btn" id="assignWidth" data-i18n="asWidth">العرض</button>
+    <button class="btn" id="assignHeight" data-i18n="asHeight" style="margin-top:8px;">الارتفاع</button>
+    <button class="btn" id="assignDepth" data-i18n="asDepth" style="margin-top:8px;">العمق</button>
+    <button class="btn btn-outline" id="camRemeasure" data-i18n="measureAgain" style="margin-top:12px;">قياس آخر</button>
+  </div>
+</div>
+
 <script>
-// ============ CONFIG ============
 const SUPABASE_URL = "https://iwzoawrosnvddlytxmil.supabase.co";
 const SUPABASE_KEY = "sb_publishable_P7wchWGrULkotCQ0K1R3uA_XVz3Od9m";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -251,7 +326,14 @@ const I18N = {
     addBtn:"إضافة", totalArea:"إجمالي المساحة", noMeasures:"لا توجد قياسات بعد",
     tv_unit:"وحدة تلفزيون", wardrobe:"خزانة ملابس", curtains:"ستائر", kitchen:"مطبخ", room:"غرفة كاملة", other:"أخرى",
     status_pending:"قيد المراجعة", status_quoted:"تم التسعير", status_approved:"تمت الموافقة", status_building:"قيد التنفيذ",
-    projTitleReq:"يرجى إدخال عنوان المشروع", confirmDel:"حذف هذا القياس؟"
+    projTitleReq:"يرجى إدخال عنوان المشروع", confirmDel:"حذف هذا القياس؟",
+    cameraBtn:"📷 القياس بالكاميرا", camStep1:"الخطوة 1: التقط صورة",
+    refChoose:"اختر مرجع القياس:", refA4L:"ورقة A4 — الطول (29.7 سم)", refA4W:"ورقة A4 — العرض (21 سم)",
+    refCard:"بطاقة بنكية (8.56 سم)", refCustom:"مرجع مخصص (متر/مسطرة)", takePhoto:"📷 التقط أو اختر صورة",
+    photoHint:"ضع المرجع (ورقة A4) على الجدار والتقط صورة من الأمام مباشرة",
+    tapRef:"انقر على طرفي المرجع (نقطتان)", tapTarget:"انقر على طرفي ما تريد قياسه (نقطتان)",
+    reset:"إعادة", next:"التالي", assignTo:"أضف هذا القياس إلى:", asWidth:"العرض", asHeight:"الارتفاع", asDepth:"العمق",
+    measureAgain:"قياس آخر", refSet:"تم تحديد المرجع ✓", customRefReq:"أدخل طول المرجع"
   },
   fa:{
     appTitle:"دار الأصالة", loginTitle:"ورود", loginSub:"ایمیل و رمز عبور خود را وارد کنید",
@@ -267,7 +349,14 @@ const I18N = {
     addBtn:"افزودن", totalArea:"مجموع متراژ", noMeasures:"هنوز اندازه‌ای نیست",
     tv_unit:"میز تلویزیون", wardrobe:"کمد لباس", curtains:"پرده", kitchen:"آشپزخانه", room:"اتاق کامل", other:"سایر",
     status_pending:"در انتظار بررسی", status_quoted:"قیمت داده شد", status_approved:"تأیید شد", status_building:"در حال ساخت",
-    projTitleReq:"لطفاً عنوان پروژه را وارد کن", confirmDel:"این اندازه حذف شود؟"
+    projTitleReq:"لطفاً عنوان پروژه را وارد کن", confirmDel:"این اندازه حذف شود؟",
+    cameraBtn:"📷 اندازه‌گیری با دوربین", camStep1:"مرحله ۱: عکس بگیر",
+    refChoose:"مرجع مقیاس را انتخاب کن:", refA4L:"برگه A4 — طول (۲۹.۷ سانتی‌متر)", refA4W:"برگه A4 — عرض (۲۱ سانتی‌متر)",
+    refCard:"کارت بانکی (۸.۵۶ سانتی‌متر)", refCustom:"مرجع دلخواه (متر/خط‌کش)", takePhoto:"📷 عکس بگیر یا انتخاب کن",
+    photoHint:"مرجع (برگه A4) را روی دیوار بچسبان و از روبه‌رو عکس بگیر",
+    tapRef:"دو سر مرجع را لمس کن (دو نقطه)", tapTarget:"دو سر چیزی که می‌خواهی اندازه بگیری را لمس کن (دو نقطه)",
+    reset:"از نو", next:"بعدی", assignTo:"این اندازه را اضافه کن به:", asWidth:"عرض", asHeight:"ارتفاع", asDepth:"عمق",
+    measureAgain:"اندازه‌گیری دیگر", refSet:"مرجع تعیین شد ✓", customRefReq:"طول مرجع را وارد کن"
   },
   en:{
     appTitle:"Dar Al-Asala", loginTitle:"Login", loginSub:"Enter your email and password",
@@ -283,7 +372,14 @@ const I18N = {
     addBtn:"Add", totalArea:"Total area", noMeasures:"No measurements yet",
     tv_unit:"TV Unit", wardrobe:"Wardrobe", curtains:"Curtains", kitchen:"Kitchen", room:"Full room", other:"Other",
     status_pending:"Pending review", status_quoted:"Quoted", status_approved:"Approved", status_building:"In production",
-    projTitleReq:"Please enter a project title", confirmDel:"Delete this measurement?"
+    projTitleReq:"Please enter a project title", confirmDel:"Delete this measurement?",
+    cameraBtn:"📷 Measure with camera", camStep1:"Step 1: Take a photo",
+    refChoose:"Choose scale reference:", refA4L:"A4 paper — Length (29.7 cm)", refA4W:"A4 paper — Width (21 cm)",
+    refCard:"Bank card (8.56 cm)", refCustom:"Custom reference (ruler/tape)", takePhoto:"📷 Take or choose photo",
+    photoHint:"Place the reference (A4 paper) on the wall and shoot straight from the front",
+    tapRef:"Tap the two ends of the reference (2 points)", tapTarget:"Tap the two ends of what you're measuring (2 points)",
+    reset:"Reset", next:"Next", assignTo:"Add this measurement to:", asWidth:"Width", asHeight:"Height", asDepth:"Depth",
+    measureAgain:"Measure again", refSet:"Reference set ✓", customRefReq:"Enter reference length"
   }
 };
 let currentLang = "ar";
@@ -476,6 +572,166 @@ async function delMeasure(id){
   if(!confirm(t("confirmDel"))) return;
   try{ await sb.from("measurements").delete().eq("id",id); await loadMeasures(); }catch(e){}
 }
+
+// ============ CAMERA MEASURE ============
+const camModal=document.getElementById("camModal");
+const camCanvas=document.getElementById("camCanvas");
+const ctx=camCanvas.getContext("2d");
+let camImg=null, camPoints=[], camPhase="ref"; // ref | target
+let refRealCm=29.7, refPxLen=0, lastResultCm=0;
+let canvasScale=1;
+
+function openCamera(){
+  // reset
+  camPoints=[]; camPhase="ref"; refPxLen=0; lastResultCm=0; camImg=null;
+  document.getElementById("camStepPhoto").style.display="flex";
+  document.getElementById("camStepCanvas").style.display="none";
+  document.getElementById("camStepAssign").style.display="none";
+  document.getElementById("camStepTitle").textContent=t("camStep1");
+  document.getElementById("refType").value="29.7";
+  document.getElementById("customRefBox").style.display="none";
+  document.getElementById("customRefCm").value="";
+  camModal.classList.add("active");
+}
+document.getElementById("openCameraBtn").onclick=openCamera;
+document.getElementById("camClose").onclick=()=>camModal.classList.remove("active");
+
+document.getElementById("refType").onchange=function(){
+  document.getElementById("customRefBox").style.display = this.value==="custom" ? "block" : "none";
+};
+
+document.getElementById("camFile").onchange=function(e){
+  const file=e.target.files[0];
+  if(!file) return;
+  // resolve reference length
+  const rt=document.getElementById("refType").value;
+  if(rt==="custom"){
+    const c=parseFloat(document.getElementById("customRefCm").value);
+    if(!c||c<=0){ alert(t("customRefReq")); this.value=""; return; }
+    refRealCm=c;
+  } else { refRealCm=parseFloat(rt); }
+
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      camImg=img;
+      setupCanvas();
+      // switch to canvas step
+      document.getElementById("camStepPhoto").style.display="none";
+      document.getElementById("camStepCanvas").style.display="flex";
+      camPhase="ref"; camPoints=[];
+      document.getElementById("camInstruction").textContent=t("tapRef");
+      document.getElementById("camStepTitle").textContent=t("tapRef");
+      drawCanvas();
+      updateCamButtons();
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+};
+
+function setupCanvas(){
+  // fit image within max dims while keeping aspect
+  const maxW=Math.min(window.innerWidth-36, 900);
+  const maxH=window.innerHeight*0.65;
+  let w=camImg.width, h=camImg.height;
+  const ratio=Math.min(maxW/w, maxH/h, 1);
+  canvasScale=ratio;
+  camCanvas.width=w*ratio;
+  camCanvas.height=h*ratio;
+}
+function drawCanvas(){
+  ctx.clearRect(0,0,camCanvas.width,camCanvas.height);
+  if(camImg) ctx.drawImage(camImg,0,0,camCanvas.width,camCanvas.height);
+  // draw points
+  camPoints.forEach((p,i)=>{
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,8,0,Math.PI*2);
+    ctx.fillStyle = camPhase==="ref" ? "#2e7d52" : "#c0392b";
+    ctx.fill();
+    ctx.lineWidth=2; ctx.strokeStyle="#fff"; ctx.stroke();
+    ctx.fillStyle="#fff"; ctx.font="bold 12px sans-serif"; ctx.textAlign="center";
+    ctx.fillText(i+1, p.x, p.y+4);
+  });
+  // draw line between 2 points
+  if(camPoints.length===2){
+    ctx.beginPath();
+    ctx.moveTo(camPoints[0].x,camPoints[0].y);
+    ctx.lineTo(camPoints[1].x,camPoints[1].y);
+    ctx.lineWidth=3;
+    ctx.strokeStyle = camPhase==="ref" ? "#2e7d52" : "#c0392b";
+    ctx.stroke();
+  }
+}
+function canvasPoint(e){
+  const rect=camCanvas.getBoundingClientRect();
+  const cx=(e.touches? e.touches[0].clientX : e.clientX)-rect.left;
+  const cy=(e.touches? e.touches[0].clientY : e.clientY)-rect.top;
+  return {x:cx*(camCanvas.width/rect.width), y:cy*(camCanvas.height/rect.height)};
+}
+function handleCanvasTap(e){
+  e.preventDefault();
+  if(camPoints.length>=2) return;
+  camPoints.push(canvasPoint(e));
+  drawCanvas();
+  updateCamButtons();
+}
+camCanvas.addEventListener("click",handleCanvasTap);
+camCanvas.addEventListener("touchstart",handleCanvasTap,{passive:false});
+
+function updateCamButtons(){
+  const nextBtn=document.getElementById("camNext");
+  const res=document.getElementById("camResult");
+  nextBtn.disabled = camPoints.length!==2;
+  if(camPoints.length===2){
+    if(camPhase==="ref"){
+      res.textContent="";
+    } else {
+      const px=distancePx(camPoints[0],camPoints[1]);
+      const cm=(refRealCm/refPxLen)*px;
+      lastResultCm=cm;
+      res.textContent=cm.toFixed(1)+" cm";
+    }
+  } else { res.textContent=""; }
+}
+function distancePx(a,b){ return Math.sqrt(Math.pow(b.x-a.x,2)+Math.pow(b.y-a.y,2)); }
+
+document.getElementById("camReset").onclick=()=>{
+  camPoints=[]; drawCanvas(); updateCamButtons();
+};
+document.getElementById("camNext").onclick=()=>{
+  if(camPoints.length!==2) return;
+  if(camPhase==="ref"){
+    refPxLen=distancePx(camPoints[0],camPoints[1]);
+    camPhase="target"; camPoints=[];
+    document.getElementById("camInstruction").textContent=t("tapTarget");
+    document.getElementById("camStepTitle").textContent=t("tapTarget");
+    drawCanvas(); updateCamButtons();
+  } else {
+    // show assign step
+    document.getElementById("camStepCanvas").style.display="none";
+    document.getElementById("camStepAssign").style.display="flex";
+    document.getElementById("camFinal").textContent=lastResultCm.toFixed(1)+" cm";
+  }
+};
+function assignAndClose(field){
+  const val=lastResultCm.toFixed(1);
+  if(field==="width") document.getElementById("mWidth").value=val;
+  if(field==="height") document.getElementById("mHeight").value=val;
+  if(field==="depth") document.getElementById("mDepth").value=val;
+  camModal.classList.remove("active");
+}
+document.getElementById("assignWidth").onclick=()=>assignAndClose("width");
+document.getElementById("assignHeight").onclick=()=>assignAndClose("height");
+document.getElementById("assignDepth").onclick=()=>assignAndClose("depth");
+document.getElementById("camRemeasure").onclick=()=>{
+  camPhase="target"; camPoints=[];
+  document.getElementById("camStepAssign").style.display="none";
+  document.getElementById("camStepCanvas").style.display="flex";
+  document.getElementById("camInstruction").textContent=t("tapTarget");
+  drawCanvas(); updateCamButtons();
+};
 
 // ============ SESSION ROUTING ============
 async function onLogin(session){

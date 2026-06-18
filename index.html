@@ -7,232 +7,225 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
-    --bg:#f4f1ea;
-    --card:#ffffff;
-    --brand:#8a6d3b;
-    --brand-dark:#6b5430;
-    --text:#2b2b2b;
-    --muted:#8a8a8a;
-    --line:#e6e0d6;
-    --danger:#c0392b;
-    --ok:#2e7d52;
+    --bg:#f4f1ea; --card:#ffffff; --brand:#8a6d3b; --brand-dark:#6b5430;
+    --text:#2b2b2b; --muted:#8a8a8a; --line:#e6e0d6; --danger:#c0392b; --ok:#2e7d52;
+    --soft:#faf8f4;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-  body{
-    font-family:'Segoe UI',Tahoma,sans-serif;
-    background:#f4f1ea;
-    color:var(--text);
-    min-height:100vh;
-    display:flex;
-    flex-direction:column;
-  }
-  .topbar{
-    background:var(--brand);
-    color:#fff;
-    padding:14px 16px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    box-shadow:0 2px 8px rgba(0,0,0,.12);
-  }
+  body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+  .topbar{background:var(--brand);color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.12);position:sticky;top:0;z-index:50;}
   .topbar h1{font-size:17px;font-weight:600;}
+  .topbar .left{display:flex;align-items:center;gap:10px;}
   .lang-switch{display:flex;gap:4px;}
-  .lang-switch button{
-    background:rgba(255,255,255,.18);
-    border:none;color:#fff;
-    padding:5px 9px;border-radius:6px;
-    font-size:12px;cursor:pointer;
-  }
+  .lang-switch button{background:rgba(255,255,255,.18);border:none;color:#fff;padding:5px 9px;border-radius:6px;font-size:12px;cursor:pointer;}
   .lang-switch button.active{background:rgba(255,255,255,.9);color:var(--brand-dark);font-weight:700;}
-  .wrap{
-    flex:1;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:20px;
-  }
-  .card{
-    background:var(--card);
-    width:100%;
-    max-width:420px;
-    border-radius:16px;
-    padding:26px 22px;
-    box-shadow:0 6px 24px rgba(0,0,0,.08);
-  }
+  .icon-btn{background:rgba(255,255,255,.18);border:none;color:#fff;width:34px;height:34px;border-radius:8px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .card{background:var(--card);width:100%;max-width:420px;border-radius:16px;padding:26px 22px;box-shadow:0 6px 24px rgba(0,0,0,.08);}
   .card h2{font-size:20px;margin-bottom:6px;color:var(--brand-dark);}
   .card .sub{color:var(--muted);font-size:13px;margin-bottom:20px;}
   .field{margin-bottom:14px;}
   .field label{display:block;font-size:13px;margin-bottom:6px;color:#555;}
-  .field input{
-    width:100%;
-    padding:12px 13px;
-    border:1px solid var(--line);
-    border-radius:10px;
-    font-size:15px;
-    background:#faf8f4;
-  }
-  .field input:focus{outline:none;border-color:var(--brand);background:#fff;}
-  .btn{
-    width:100%;
-    padding:13px;
-    background:var(--brand);
-    color:#fff;border:none;
-    border-radius:10px;
-    font-size:16px;font-weight:600;
-    cursor:pointer;
-    margin-top:6px;
-  }
+  .field input,.field select{width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:10px;font-size:15px;background:var(--soft);font-family:inherit;}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--brand);background:#fff;}
+  .btn{width:100%;padding:13px;background:var(--brand);color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;margin-top:6px;}
   .btn:active{background:var(--brand-dark);}
   .btn:disabled{opacity:.6;cursor:not-allowed;}
-  .switch-link{
-    text-align:center;
-    margin-top:16px;
-    font-size:14px;
-    color:var(--muted);
-  }
+  .btn-outline{background:#fff;color:var(--brand);border:1px solid var(--brand);}
+  .switch-link{text-align:center;margin-top:16px;font-size:14px;color:var(--muted);}
   .switch-link a{color:var(--brand);font-weight:600;cursor:pointer;text-decoration:none;}
-  .msg{
-    padding:11px 13px;
-    border-radius:9px;
-    font-size:13.5px;
-    margin-bottom:14px;
-    display:none;
-    line-height:1.5;
-  }
+  .msg{padding:11px 13px;border-radius:9px;font-size:13.5px;margin-bottom:14px;display:none;line-height:1.5;}
   .msg.error{background:#fdecea;color:var(--danger);display:block;}
   .msg.success{background:#e7f5ec;color:var(--ok);display:block;}
   .row2{display:flex;gap:10px;}
   .row2 .field{flex:1;}
-  /* home screen */
-  .home{
-    flex:1;
-    padding:24px 18px;
-    display:none;
-    flex-direction:column;
-  }
-  .home.active{display:flex;}
-  .welcome-card{
-    background:var(--card);
-    border-radius:16px;
-    padding:24px;
-    box-shadow:0 4px 18px rgba(0,0,0,.06);
-    text-align:center;
-  }
-  .welcome-card .avatar{
-    width:70px;height:70px;border-radius:50%;
-    background:var(--brand);color:#fff;
-    display:flex;align-items:center;justify-content:center;
-    font-size:28px;font-weight:700;
-    margin:0 auto 14px;
-  }
-  .welcome-card h3{font-size:20px;margin-bottom:4px;}
-  .welcome-card p{color:var(--muted);font-size:14px;margin-bottom:4px;}
-  .logout-btn{
-    margin-top:22px;
-    background:#fff;
-    color:var(--danger);
-    border:1px solid #f0d5d2;
-  }
-  .logout-btn:active{background:#fdecea;}
-  .spinner{
-    display:inline-block;width:16px;height:16px;
-    border:2px solid rgba(255,255,255,.4);
-    border-top-color:#fff;border-radius:50%;
-    animation:spin .7s linear infinite;
-    vertical-align:middle;
-  }
+  .row3{display:flex;gap:8px;}
+  .row3 .field{flex:1;}
+
+  /* screens */
+  .screen{flex:1;padding:18px;display:none;flex-direction:column;max-width:600px;margin:0 auto;width:100%;}
+  .screen.active{display:flex;}
+
+  .page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .page-head h2{font-size:19px;color:var(--brand-dark);}
+  .back-btn{background:none;border:none;color:var(--brand);font-size:15px;cursor:pointer;font-weight:600;padding:6px;}
+
+  /* project cards */
+  .proj-list{display:flex;flex-direction:column;gap:12px;}
+  .proj-card{background:var(--card);border-radius:14px;padding:16px;box-shadow:0 3px 12px rgba(0,0,0,.05);cursor:pointer;border:1px solid var(--line);transition:transform .1s;}
+  .proj-card:active{transform:scale(.99);}
+  .proj-card .pc-top{display:flex;justify-content:space-between;align-items:flex-start;}
+  .proj-card h3{font-size:16px;margin-bottom:4px;}
+  .proj-card .work-type{font-size:13px;color:var(--brand);background:var(--soft);padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:6px;}
+  .proj-card .meta{font-size:12px;color:var(--muted);}
+  .status-badge{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:600;white-space:nowrap;}
+  .status-pending{background:#fff4e0;color:#a06800;}
+  .status-quoted{background:#e3f0fb;color:#1c6fb8;}
+  .status-approved{background:#e7f5ec;color:var(--ok);}
+  .status-building{background:#f0e8f9;color:#7b3fb5;}
+
+  .empty{text-align:center;padding:40px 20px;color:var(--muted);}
+  .empty .big{font-size:46px;margin-bottom:10px;}
+
+  .fab{position:fixed;bottom:22px;left:22px;background:var(--brand);color:#fff;border:none;width:56px;height:56px;border-radius:50%;font-size:28px;box-shadow:0 4px 14px rgba(138,109,59,.4);cursor:pointer;z-index:40;display:flex;align-items:center;justify-content:center;}
+  .fab:active{background:var(--brand-dark);}
+
+  /* measurement rows */
+  .measure-list{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;}
+  .measure-item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;}
+  .measure-item .mi-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .measure-item .mi-label{font-weight:600;font-size:15px;}
+  .measure-item .mi-del{background:none;border:none;color:var(--danger);cursor:pointer;font-size:16px;}
+  .measure-item .dims{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:#555;}
+  .measure-item .dims b{color:var(--brand-dark);}
+  .area-tag{margin-top:8px;font-size:13px;color:var(--ok);font-weight:600;}
+
+  .add-measure-box{background:var(--card);border:1px dashed var(--brand);border-radius:12px;padding:16px;margin-bottom:14px;}
+  .add-measure-box h4{font-size:14px;margin-bottom:12px;color:var(--brand-dark);}
+
+  .total-box{background:var(--brand);color:#fff;border-radius:12px;padding:16px;margin-top:6px;text-align:center;}
+  .total-box .t-area{font-size:24px;font-weight:700;}
+  .total-box .t-label{font-size:13px;opacity:.9;}
+
+  /* modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;}
+  .modal-overlay.active{display:flex;}
+  .modal{background:#fff;border-radius:16px;padding:22px;width:100%;max-width:400px;}
+  .modal h3{font-size:18px;margin-bottom:16px;color:var(--brand-dark);}
+
+  .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;}
   @keyframes spin{to{transform:rotate(360deg);}}
-  .loading-screen{
-    position:fixed;inset:0;background:#f4f1ea;
-    display:flex;align-items:center;justify-content:center;
-    z-index:999;
-  }
+  .loading-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;}
   .loading-screen .spinner{border-color:rgba(138,109,59,.3);border-top-color:var(--brand);width:34px;height:34px;}
+
+  .profile-mini{background:var(--card);border-radius:12px;padding:14px;margin-bottom:16px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+  .profile-mini .avatar{width:44px;height:44px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;}
+  .profile-mini .pm-info{flex:1;}
+  .profile-mini .pm-info .pm-name{font-weight:600;font-size:15px;}
+  .profile-mini .pm-info .pm-sub{font-size:12px;color:var(--muted);}
+  .admin-pill{font-size:10px;background:var(--brand-dark);color:#fff;padding:2px 8px;border-radius:10px;font-weight:600;}
+  .hint{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;}
 </style>
 </head>
 <body>
 
-<div class="loading-screen" id="loadingScreen">
-  <div class="spinner"></div>
-</div>
+<div class="loading-screen" id="loadingScreen"><div class="spinner"></div></div>
 
 <div class="topbar">
   <h1 id="appTitle">دار الأصالة</h1>
-  <div class="lang-switch">
-    <button data-lang="ar" class="active">ع</button>
-    <button data-lang="fa">فا</button>
-    <button data-lang="en">EN</button>
+  <div class="left">
+    <div class="lang-switch">
+      <button data-lang="ar" class="active">ع</button>
+      <button data-lang="fa">فا</button>
+      <button data-lang="en">EN</button>
+    </div>
   </div>
 </div>
 
-<!-- AUTH -->
+<!-- ===== AUTH ===== -->
 <div class="wrap" id="authWrap">
   <div class="card">
     <div id="msg" class="msg"></div>
-
-    <!-- LOGIN -->
     <div id="loginForm">
       <h2 data-i18n="loginTitle">تسجيل الدخول</h2>
       <p class="sub" data-i18n="loginSub">أدخل بريدك وكلمة المرور للدخول</p>
-      <div class="field">
-        <label data-i18n="email">البريد الإلكتروني</label>
-        <input type="email" id="loginEmail" autocomplete="email">
-      </div>
-      <div class="field">
-        <label data-i18n="password">كلمة المرور</label>
-        <input type="password" id="loginPassword" autocomplete="current-password">
-      </div>
+      <div class="field"><label data-i18n="email">البريد الإلكتروني</label><input type="email" id="loginEmail" autocomplete="email"></div>
+      <div class="field"><label data-i18n="password">كلمة المرور</label><input type="password" id="loginPassword" autocomplete="current-password"></div>
       <button class="btn" id="loginBtn" data-i18n="loginBtn">دخول</button>
-      <div class="switch-link">
-        <span data-i18n="noAccount">ليس لديك حساب؟</span>
-        <a id="toRegister" data-i18n="createAccount">إنشاء حساب</a>
-      </div>
+      <div class="switch-link"><span data-i18n="noAccount">ليس لديك حساب؟</span> <a id="toRegister" data-i18n="createAccount">إنشاء حساب</a></div>
     </div>
-
-    <!-- REGISTER -->
     <div id="registerForm" style="display:none;">
       <h2 data-i18n="regTitle">إنشاء حساب</h2>
       <p class="sub" data-i18n="regSub">أدخل بياناتك لإنشاء حساب جديد</p>
       <div class="row2">
-        <div class="field">
-          <label data-i18n="firstName">الاسم</label>
-          <input type="text" id="regFirst">
-        </div>
-        <div class="field">
-          <label data-i18n="lastName">اللقب</label>
-          <input type="text" id="regLast">
-        </div>
+        <div class="field"><label data-i18n="firstName">الاسم</label><input type="text" id="regFirst"></div>
+        <div class="field"><label data-i18n="lastName">اللقب</label><input type="text" id="regLast"></div>
       </div>
-      <div class="field">
-        <label data-i18n="phone">رقم الهاتف</label>
-        <input type="tel" id="regPhone" autocomplete="tel">
-      </div>
-      <div class="field">
-        <label data-i18n="email">البريد الإلكتروني</label>
-        <input type="email" id="regEmail" autocomplete="email">
-      </div>
-      <div class="field">
-        <label data-i18n="password">كلمة المرور</label>
-        <input type="password" id="regPassword" autocomplete="new-password">
-      </div>
+      <div class="field"><label data-i18n="phone">رقم الهاتف</label><input type="tel" id="regPhone" autocomplete="tel"></div>
+      <div class="field"><label data-i18n="email">البريد الإلكتروني</label><input type="email" id="regEmail" autocomplete="email"></div>
+      <div class="field"><label data-i18n="password">كلمة المرور</label><input type="password" id="regPassword" autocomplete="new-password"></div>
       <button class="btn" id="registerBtn" data-i18n="regBtn">تسجيل</button>
-      <div class="switch-link">
-        <span data-i18n="haveAccount">لديك حساب بالفعل؟</span>
-        <a id="toLogin" data-i18n="loginLink">تسجيل الدخول</a>
-      </div>
+      <div class="switch-link"><span data-i18n="haveAccount">لديك حساب بالفعل؟</span> <a id="toLogin" data-i18n="loginLink">تسجيل الدخول</a></div>
     </div>
   </div>
 </div>
 
-<!-- HOME (after login) -->
-<div class="home" id="homeScreen">
-  <div class="welcome-card">
-    <div class="avatar" id="userAvatar">?</div>
-    <h3 id="userName">—</h3>
-    <p id="userEmail">—</p>
-    <p id="userPhone">—</p>
-    <p style="margin-top:10px;color:var(--ok);font-weight:600;" data-i18n="loggedIn">تم تسجيل الدخول بنجاح ✓</p>
-    <button class="btn logout-btn" id="logoutBtn" data-i18n="logout">تسجيل الخروج</button>
+<!-- ===== PROJECTS LIST ===== -->
+<div class="screen" id="projectsScreen">
+  <div class="profile-mini">
+    <div class="avatar" id="pmAvatar">?</div>
+    <div class="pm-info">
+      <div class="pm-name" id="pmName">—</div>
+      <div class="pm-sub" id="pmEmail">—</div>
+    </div>
+    <span class="admin-pill" id="adminPill" style="display:none;">ADMIN</span>
+    <button class="icon-btn" id="logoutBtn2" style="background:var(--soft);color:var(--danger);" title="logout">⏻</button>
+  </div>
+
+  <div class="page-head">
+    <h2 data-i18n="myProjects">مشاريعي</h2>
+  </div>
+
+  <div id="projListWrap" class="proj-list"></div>
+  <div id="projEmpty" class="empty" style="display:none;">
+    <div class="big">📐</div>
+    <p data-i18n="noProjects">لا توجد مشاريع بعد</p>
+    <p style="font-size:13px;margin-top:6px;" data-i18n="noProjectsHint">اضغط زر + لإنشاء مشروع جديد</p>
+  </div>
+
+  <button class="fab" id="newProjFab">+</button>
+</div>
+
+<!-- ===== PROJECT DETAIL (measurements) ===== -->
+<div class="screen" id="detailScreen">
+  <div class="page-head">
+    <button class="back-btn" id="backToProjects">→ <span data-i18n="back">رجوع</span></button>
+  </div>
+  <div style="margin-bottom:6px;">
+    <h2 id="detailTitle" style="color:var(--brand-dark);font-size:20px;">—</h2>
+    <span class="work-type" id="detailType" style="font-size:13px;color:var(--brand);background:var(--soft);padding:3px 10px;border-radius:20px;display:inline-block;margin-top:6px;">—</span>
+  </div>
+
+  <div style="margin:16px 0 8px;font-size:14px;font-weight:600;color:#555;" data-i18n="measurements">القياسات</div>
+  <div id="measureList" class="measure-list"></div>
+
+  <div class="add-measure-box">
+    <h4 data-i18n="addMeasure">إضافة قياس جديد</h4>
+    <div class="field"><label data-i18n="measureLabel">اسم السطح / الجدار</label><input type="text" id="mLabel" placeholder="مثال: الجدار الشمالي"></div>
+    <div class="row3">
+      <div class="field"><label data-i18n="width">العرض (سم)</label><input type="number" id="mWidth" inputmode="decimal"></div>
+      <div class="field"><label data-i18n="height">الارتفاع (سم)</label><input type="number" id="mHeight" inputmode="decimal"></div>
+      <div class="field"><label data-i18n="depth">العمق (سم)</label><input type="number" id="mDepth" inputmode="decimal"></div>
+    </div>
+    <p class="hint" data-i18n="depthHint">العمق اختياري — للقطع ثلاثية الأبعاد مثل الخزائن</p>
+    <button class="btn" id="addMeasureBtn" data-i18n="addBtn" style="margin-top:10px;">إضافة</button>
+  </div>
+
+  <div class="total-box">
+    <div class="t-area" id="totalArea">0.00 م²</div>
+    <div class="t-label" data-i18n="totalArea">إجمالي المساحة</div>
+  </div>
+  <div style="height:30px;"></div>
+</div>
+
+<!-- ===== NEW PROJECT MODAL ===== -->
+<div class="modal-overlay" id="newProjModal">
+  <div class="modal">
+    <h3 data-i18n="newProject">مشروع جديد</h3>
+    <div id="projMsg" class="msg"></div>
+    <div class="field"><label data-i18n="projectTitle">عنوان المشروع</label><input type="text" id="projTitle" placeholder="مثال: غرفة المعيشة"></div>
+    <div class="field"><label data-i18n="workType">نوع العمل</label>
+      <select id="projWorkType">
+        <option value="tv_unit" data-i18n-opt="tv_unit">وحدة تلفزيون</option>
+        <option value="wardrobe" data-i18n-opt="wardrobe">خزانة ملابس</option>
+        <option value="curtains" data-i18n-opt="curtains">ستائر</option>
+        <option value="kitchen" data-i18n-opt="kitchen">مطبخ</option>
+        <option value="room" data-i18n-opt="room">غرفة كاملة</option>
+        <option value="other" data-i18n-opt="other">أخرى</option>
+      </select>
+    </div>
+    <button class="btn" id="createProjBtn" data-i18n="create">إنشاء</button>
+    <button class="btn btn-outline" id="cancelProjBtn" data-i18n="cancel" style="margin-top:8px;">إلغاء</button>
   </div>
 </div>
 
@@ -246,42 +239,55 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const I18N = {
   ar:{
     appTitle:"دار الأصالة", loginTitle:"تسجيل الدخول", loginSub:"أدخل بريدك وكلمة المرور للدخول",
-    email:"البريد الإلكتروني", password:"كلمة المرور", loginBtn:"دخول",
-    noAccount:"ليس لديك حساب؟", createAccount:"إنشاء حساب",
-    regTitle:"إنشاء حساب", regSub:"أدخل بياناتك لإنشاء حساب جديد",
-    firstName:"الاسم", lastName:"اللقب", phone:"رقم الهاتف", regBtn:"تسجيل",
-    haveAccount:"لديك حساب بالفعل؟", loginLink:"تسجيل الدخول",
-    loggedIn:"تم تسجيل الدخول بنجاح ✓", logout:"تسجيل الخروج",
-    fillAll:"يرجى تعبئة جميع الحقول", regSuccess:"تم إنشاء الحساب بنجاح!",
-    loginError:"البريد أو كلمة المرور غير صحيحة", genericError:"حدث خطأ، حاول مرة أخرى",
-    pwShort:"كلمة المرور يجب أن تكون 6 أحرف على الأقل"
+    email:"البريد الإلكتروني", password:"كلمة المرور", loginBtn:"دخول", noAccount:"ليس لديك حساب؟", createAccount:"إنشاء حساب",
+    regTitle:"إنشاء حساب", regSub:"أدخل بياناتك لإنشاء حساب جديد", firstName:"الاسم", lastName:"اللقب", phone:"رقم الهاتف", regBtn:"تسجيل",
+    haveAccount:"لديك حساب بالفعل؟", loginLink:"تسجيل الدخول", logout:"تسجيل الخروج",
+    fillAll:"يرجى تعبئة جميع الحقول", regSuccess:"تم إنشاء الحساب بنجاح!", loginError:"البريد أو كلمة المرور غير صحيحة",
+    genericError:"حدث خطأ، حاول مرة أخرى", pwShort:"كلمة المرور يجب أن تكون 6 أحرف على الأقل",
+    myProjects:"مشاريعي", noProjects:"لا توجد مشاريع بعد", noProjectsHint:"اضغط زر + لإنشاء مشروع جديد",
+    newProject:"مشروع جديد", projectTitle:"عنوان المشروع", workType:"نوع العمل", create:"إنشاء", cancel:"إلغاء",
+    back:"رجوع", measurements:"القياسات", addMeasure:"إضافة قياس جديد", measureLabel:"اسم السطح / الجدار",
+    width:"العرض (سم)", height:"الارتفاع (سم)", depth:"العمق (سم)", depthHint:"العمق اختياري — للقطع ثلاثية الأبعاد مثل الخزائن",
+    addBtn:"إضافة", totalArea:"إجمالي المساحة", noMeasures:"لا توجد قياسات بعد",
+    tv_unit:"وحدة تلفزيون", wardrobe:"خزانة ملابس", curtains:"ستائر", kitchen:"مطبخ", room:"غرفة كاملة", other:"أخرى",
+    status_pending:"قيد المراجعة", status_quoted:"تم التسعير", status_approved:"تمت الموافقة", status_building:"قيد التنفيذ",
+    projTitleReq:"يرجى إدخال عنوان المشروع", confirmDel:"حذف هذا القياس؟"
   },
   fa:{
     appTitle:"دار الأصالة", loginTitle:"ورود", loginSub:"ایمیل و رمز عبور خود را وارد کنید",
-    email:"ایمیل", password:"رمز عبور", loginBtn:"ورود",
-    noAccount:"حساب نداری؟", createAccount:"ساخت حساب",
-    regTitle:"ساخت حساب", regSub:"اطلاعاتت را برای ساخت حساب وارد کن",
-    firstName:"نام", lastName:"نام خانوادگی", phone:"شماره موبایل", regBtn:"ثبت‌نام",
-    haveAccount:"حساب داری؟", loginLink:"ورود",
-    loggedIn:"با موفقیت وارد شدی ✓", logout:"خروج",
-    fillAll:"لطفاً همه فیلدها را پر کن", regSuccess:"حساب با موفقیت ساخته شد!",
-    loginError:"ایمیل یا رمز عبور اشتباه است", genericError:"خطایی رخ داد، دوباره تلاش کن",
-    pwShort:"رمز عبور باید حداقل ۶ کاراکتر باشد"
+    email:"ایمیل", password:"رمز عبور", loginBtn:"ورود", noAccount:"حساب نداری؟", createAccount:"ساخت حساب",
+    regTitle:"ساخت حساب", regSub:"اطلاعاتت را برای ساخت حساب وارد کن", firstName:"نام", lastName:"نام خانوادگی", phone:"شماره موبایل", regBtn:"ثبت‌نام",
+    haveAccount:"حساب داری؟", loginLink:"ورود", logout:"خروج",
+    fillAll:"لطفاً همه فیلدها را پر کن", regSuccess:"حساب با موفقیت ساخته شد!", loginError:"ایمیل یا رمز عبور اشتباه است",
+    genericError:"خطایی رخ داد، دوباره تلاش کن", pwShort:"رمز عبور باید حداقل ۶ کاراکتر باشد",
+    myProjects:"پروژه‌های من", noProjects:"هنوز پروژه‌ای نیست", noProjectsHint:"دکمه + را بزن تا پروژه بسازی",
+    newProject:"پروژه جدید", projectTitle:"عنوان پروژه", workType:"نوع کار", create:"ساختن", cancel:"لغو",
+    back:"بازگشت", measurements:"اندازه‌ها", addMeasure:"افزودن اندازه جدید", measureLabel:"نام سطح / دیوار",
+    width:"عرض (سانتی‌متر)", height:"ارتفاع (سانتی‌متر)", depth:"عمق (سانتی‌متر)", depthHint:"عمق اختیاری است — برای قطعات سه‌بعدی مثل کمد",
+    addBtn:"افزودن", totalArea:"مجموع متراژ", noMeasures:"هنوز اندازه‌ای نیست",
+    tv_unit:"میز تلویزیون", wardrobe:"کمد لباس", curtains:"پرده", kitchen:"آشپزخانه", room:"اتاق کامل", other:"سایر",
+    status_pending:"در انتظار بررسی", status_quoted:"قیمت داده شد", status_approved:"تأیید شد", status_building:"در حال ساخت",
+    projTitleReq:"لطفاً عنوان پروژه را وارد کن", confirmDel:"این اندازه حذف شود؟"
   },
   en:{
     appTitle:"Dar Al-Asala", loginTitle:"Login", loginSub:"Enter your email and password",
-    email:"Email", password:"Password", loginBtn:"Login",
-    noAccount:"Don't have an account?", createAccount:"Create account",
-    regTitle:"Create Account", regSub:"Enter your details to register",
-    firstName:"First name", lastName:"Last name", phone:"Phone", regBtn:"Register",
-    haveAccount:"Already have an account?", loginLink:"Login",
-    loggedIn:"Logged in successfully ✓", logout:"Logout",
-    fillAll:"Please fill all fields", regSuccess:"Account created successfully!",
-    loginError:"Wrong email or password", genericError:"An error occurred, try again",
-    pwShort:"Password must be at least 6 characters"
+    email:"Email", password:"Password", loginBtn:"Login", noAccount:"Don't have an account?", createAccount:"Create account",
+    regTitle:"Create Account", regSub:"Enter your details to register", firstName:"First name", lastName:"Last name", phone:"Phone", regBtn:"Register",
+    haveAccount:"Already have an account?", loginLink:"Login", logout:"Logout",
+    fillAll:"Please fill all fields", regSuccess:"Account created successfully!", loginError:"Wrong email or password",
+    genericError:"An error occurred, try again", pwShort:"Password must be at least 6 characters",
+    myProjects:"My Projects", noProjects:"No projects yet", noProjectsHint:"Tap + to create a new project",
+    newProject:"New Project", projectTitle:"Project title", workType:"Work type", create:"Create", cancel:"Cancel",
+    back:"Back", measurements:"Measurements", addMeasure:"Add new measurement", measureLabel:"Surface / Wall name",
+    width:"Width (cm)", height:"Height (cm)", depth:"Depth (cm)", depthHint:"Depth optional — for 3D pieces like wardrobes",
+    addBtn:"Add", totalArea:"Total area", noMeasures:"No measurements yet",
+    tv_unit:"TV Unit", wardrobe:"Wardrobe", curtains:"Curtains", kitchen:"Kitchen", room:"Full room", other:"Other",
+    status_pending:"Pending review", status_quoted:"Quoted", status_approved:"Approved", status_building:"In production",
+    projTitleReq:"Please enter a project title", confirmDel:"Delete this measurement?"
   }
 };
 let currentLang = "ar";
+function t(key){ return (I18N[currentLang] && I18N[currentLang][key]) || key; }
 
 function applyLang(lang){
   currentLang = lang;
@@ -289,127 +295,206 @@ function applyLang(lang){
   document.documentElement.lang = lang;
   document.documentElement.dir = (lang==="en") ? "ltr" : "rtl";
   document.querySelectorAll("[data-i18n]").forEach(el=>{
-    const k = el.getAttribute("data-i18n");
-    if(dict[k]) el.textContent = dict[k];
+    const k = el.getAttribute("data-i18n"); if(dict[k]) el.textContent = dict[k];
   });
-  document.querySelectorAll(".lang-switch button").forEach(b=>{
-    b.classList.toggle("active", b.dataset.lang===lang);
+  document.querySelectorAll("[data-i18n-opt]").forEach(el=>{
+    const k = el.getAttribute("data-i18n-opt"); if(dict[k]) el.textContent = dict[k];
   });
+  document.querySelectorAll(".lang-switch button").forEach(b=>b.classList.toggle("active", b.dataset.lang===lang));
+  // re-render dynamic content
+  if(currentProject) renderMeasures();
+  if(currentSession) renderProjects();
 }
-function t(key){ return I18N[currentLang][key] || key; }
-
-document.querySelectorAll(".lang-switch button").forEach(b=>{
-  b.addEventListener("click", ()=>applyLang(b.dataset.lang));
-});
+document.querySelectorAll(".lang-switch button").forEach(b=>b.addEventListener("click", ()=>applyLang(b.dataset.lang)));
 
 // ============ UI HELPERS ============
 const msgBox = document.getElementById("msg");
-function showMsg(text, type){
-  msgBox.textContent = text;
-  msgBox.className = "msg " + type;
-}
-function clearMsg(){ msgBox.className = "msg"; msgBox.textContent=""; }
+function showMsg(text,type){ msgBox.textContent=text; msgBox.className="msg "+type; }
+function clearMsg(){ msgBox.className="msg"; msgBox.textContent=""; }
 
-const loginForm = document.getElementById("loginForm");
-const registerForm = document.getElementById("registerForm");
-document.getElementById("toRegister").onclick = ()=>{ loginForm.style.display="none"; registerForm.style.display="block"; clearMsg(); };
-document.getElementById("toLogin").onclick = ()=>{ registerForm.style.display="none"; loginForm.style.display="block"; clearMsg(); };
+const loginForm=document.getElementById("loginForm"), registerForm=document.getElementById("registerForm");
+document.getElementById("toRegister").onclick=()=>{loginForm.style.display="none";registerForm.style.display="block";clearMsg();};
+document.getElementById("toLogin").onclick=()=>{registerForm.style.display="none";loginForm.style.display="block";clearMsg();};
 
-// ============ AUTH ACTIONS ============
-const registerBtn = document.getElementById("registerBtn");
-registerBtn.onclick = async ()=>{
+// ============ AUTH ============
+const registerBtn=document.getElementById("registerBtn");
+registerBtn.onclick=async()=>{
   clearMsg();
-  const first = document.getElementById("regFirst").value.trim();
-  const last  = document.getElementById("regLast").value.trim();
-  const phone = document.getElementById("regPhone").value.trim();
-  const email = document.getElementById("regEmail").value.trim();
-  const pw    = document.getElementById("regPassword").value;
-  if(!first || !last || !phone || !email || !pw){ showMsg(t("fillAll"),"error"); return; }
-  if(pw.length < 6){ showMsg(t("pwShort"),"error"); return; }
-
-  registerBtn.disabled = true;
-  registerBtn.innerHTML = '<span class="spinner"></span>';
+  const first=regFirst.value.trim(),last=regLast.value.trim(),phone=regPhone.value.trim(),email=regEmail.value.trim(),pw=regPassword.value;
+  if(!first||!last||!phone||!email||!pw){showMsg(t("fillAll"),"error");return;}
+  if(pw.length<6){showMsg(t("pwShort"),"error");return;}
+  registerBtn.disabled=true; registerBtn.innerHTML='<span class="spinner"></span>';
   try{
-    const { data, error } = await sb.auth.signUp({ email, password: pw });
+    const {data,error}=await sb.auth.signUp({email,password:pw});
     if(error) throw error;
-    const userId = data.user?.id;
+    const userId=data.user?.id;
     if(userId){
-      // create profile row
-      const { error: pErr } = await sb.from("profiles").insert({
-        id:userId, first_name:first, last_name:last, phone, email, role:"customer"
-      });
-      if(pErr) console.warn("profile insert:", pErr.message);
+      const {error:pErr}=await sb.from("profiles").insert({id:userId,first_name:first,last_name:last,phone,email,role:"customer"});
+      if(pErr) console.warn("profile:",pErr.message);
     }
-    // try auto sign-in (works because confirm email is off)
-    const { error: sErr } = await sb.auth.signInWithPassword({ email, password: pw });
-    if(sErr){ showMsg(t("regSuccess"),"success"); registerForm.style.display="none"; loginForm.style.display="block"; }
-    // onAuthStateChange handles the rest
-  }catch(err){
-    showMsg(err.message || t("genericError"),"error");
-  }finally{
-    registerBtn.disabled = false;
-    registerBtn.textContent = t("regBtn");
-  }
+    await sb.auth.signInWithPassword({email,password:pw});
+  }catch(err){ showMsg(err.message||t("genericError"),"error"); }
+  finally{ registerBtn.disabled=false; registerBtn.textContent=t("regBtn"); }
 };
-
-const loginBtn = document.getElementById("loginBtn");
-loginBtn.onclick = async ()=>{
+const loginBtn=document.getElementById("loginBtn");
+loginBtn.onclick=async()=>{
   clearMsg();
-  const email = document.getElementById("loginEmail").value.trim();
-  const pw    = document.getElementById("loginPassword").value;
-  if(!email || !pw){ showMsg(t("fillAll"),"error"); return; }
-  loginBtn.disabled = true;
-  loginBtn.innerHTML = '<span class="spinner"></span>';
+  const email=loginEmail.value.trim(),pw=loginPassword.value;
+  if(!email||!pw){showMsg(t("fillAll"),"error");return;}
+  loginBtn.disabled=true; loginBtn.innerHTML='<span class="spinner"></span>';
+  try{ const {error}=await sb.auth.signInWithPassword({email,password:pw}); if(error) showMsg(t("loginError"),"error"); }
+  catch(err){ showMsg(t("genericError"),"error"); }
+  finally{ loginBtn.disabled=false; loginBtn.textContent=t("loginBtn"); }
+};
+document.getElementById("logoutBtn2").onclick=async()=>{ await sb.auth.signOut(); };
+
+// ============ STATE ============
+let currentSession=null, currentProfile=null, currentProject=null, measures=[];
+
+// ============ SCREENS ============
+const authWrap=document.getElementById("authWrap");
+const projectsScreen=document.getElementById("projectsScreen");
+const detailScreen=document.getElementById("detailScreen");
+function showScreen(name){
+  authWrap.style.display = name==="auth" ? "flex" : "none";
+  projectsScreen.classList.toggle("active", name==="projects");
+  detailScreen.classList.toggle("active", name==="detail");
+}
+
+// ============ PROFILE / PROJECTS ============
+async function loadProfile(){
+  try{ const {data}=await sb.from("profiles").select("*").eq("id",currentSession.user.id).single(); currentProfile=data; }catch(e){ currentProfile=null; }
+  const name = currentProfile ? ((currentProfile.first_name||"")+" "+(currentProfile.last_name||"")).trim() : currentSession.user.email;
+  pmName.textContent=name||"—";
+  pmEmail.textContent=currentSession.user.email||"—";
+  pmAvatar.textContent=(name||"?").charAt(0).toUpperCase();
+  document.getElementById("adminPill").style.display = (currentProfile?.role==="admin") ? "inline-block" : "none";
+}
+
+let projectsCache=[];
+async function renderProjects(){
+  const wrap=document.getElementById("projListWrap"), empty=document.getElementById("projEmpty");
+  const {data,error}=await sb.from("projects").select("*").order("created_at",{ascending:false});
+  if(error){ console.warn(error.message); }
+  projectsCache=data||[];
+  wrap.innerHTML="";
+  if(projectsCache.length===0){ empty.style.display="block"; return; }
+  empty.style.display="none";
+  projectsCache.forEach(p=>{
+    const card=document.createElement("div");
+    card.className="proj-card";
+    const dt=new Date(p.created_at).toLocaleDateString();
+    card.innerHTML=`
+      <div class="pc-top">
+        <div>
+          <span class="work-type">${t(p.work_type)||p.work_type||""}</span>
+          <h3>${escapeHtml(p.title||"—")}</h3>
+          <div class="meta">${dt}</div>
+        </div>
+        <span class="status-badge status-${p.status||'pending'}">${t('status_'+(p.status||'pending'))}</span>
+      </div>`;
+    card.onclick=()=>openProject(p);
+    wrap.appendChild(card);
+  });
+}
+function escapeHtml(s){ return (s||"").replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// new project modal
+const newProjModal=document.getElementById("newProjModal");
+document.getElementById("newProjFab").onclick=()=>{ projTitle.value=""; document.getElementById("projMsg").className="msg"; newProjModal.classList.add("active"); };
+document.getElementById("cancelProjBtn").onclick=()=>newProjModal.classList.remove("active");
+document.getElementById("createProjBtn").onclick=async()=>{
+  const title=projTitle.value.trim(), wtype=projWorkType.value;
+  const pm=document.getElementById("projMsg");
+  if(!title){ pm.textContent=t("projTitleReq"); pm.className="msg error"; return; }
+  const btn=document.getElementById("createProjBtn"); btn.disabled=true; btn.innerHTML='<span class="spinner"></span>';
   try{
-    const { error } = await sb.auth.signInWithPassword({ email, password: pw });
-    if(error){ showMsg(t("loginError"),"error"); }
-  }catch(err){
-    showMsg(t("genericError"),"error");
-  }finally{
-    loginBtn.disabled = false;
-    loginBtn.textContent = t("loginBtn");
+    const {error}=await sb.from("projects").insert({user_id:currentSession.user.id,title,work_type:wtype,status:"pending"});
+    if(error) throw error;
+    newProjModal.classList.remove("active");
+    await renderProjects();
+  }catch(err){ pm.textContent=err.message||t("genericError"); pm.className="msg error"; }
+  finally{ btn.disabled=false; btn.textContent=t("create"); }
+};
+
+// ============ PROJECT DETAIL / MEASUREMENTS ============
+async function openProject(p){
+  currentProject=p;
+  detailTitle.textContent=p.title||"—";
+  detailType.textContent=t(p.work_type)||p.work_type||"";
+  showScreen("detail");
+  await loadMeasures();
+}
+document.getElementById("backToProjects").onclick=()=>{ currentProject=null; showScreen("projects"); renderProjects(); };
+
+async function loadMeasures(){
+  const {data,error}=await sb.from("measurements").select("*").eq("project_id",currentProject.id).order("created_at",{ascending:true});
+  measures=data||[];
+  renderMeasures();
+}
+function renderMeasures(){
+  const list=document.getElementById("measureList");
+  list.innerHTML="";
+  if(measures.length===0){
+    list.innerHTML=`<div class="empty" style="padding:20px;"><p>${t("noMeasures")}</p></div>`;
   }
-};
-
-document.getElementById("logoutBtn").onclick = async ()=>{
-  await sb.auth.signOut();
-};
-
-// ============ SESSION / ROUTING ============
-const authWrap = document.getElementById("authWrap");
-const homeScreen = document.getElementById("homeScreen");
-const loadingScreen = document.getElementById("loadingScreen");
-
-async function showHome(session){
-  authWrap.style.display = "none";
-  homeScreen.classList.add("active");
-  // load profile
-  let profile = null;
+  let totalArea=0;
+  measures.forEach(m=>{
+    const w=parseFloat(m.width_cm)||0, h=parseFloat(m.height_cm)||0;
+    const area=(w*h)/10000; // cm² -> m²
+    totalArea+=area;
+    const item=document.createElement("div");
+    item.className="measure-item";
+    let dims=`<span><b>${t("width")}:</b> ${w} </span><span><b>${t("height")}:</b> ${h} </span>`;
+    if(m.depth_cm) dims+=`<span><b>${t("depth")}:</b> ${m.depth_cm} </span>`;
+    item.innerHTML=`
+      <div class="mi-top">
+        <span class="mi-label">${escapeHtml(m.label||"—")}</span>
+        <button class="mi-del" data-id="${m.id}">🗑</button>
+      </div>
+      <div class="dims">${dims}</div>
+      <div class="area-tag">${area.toFixed(2)} م²</div>`;
+    item.querySelector(".mi-del").onclick=()=>delMeasure(m.id);
+    list.appendChild(item);
+  });
+  document.getElementById("totalArea").textContent=totalArea.toFixed(2)+" م²";
+}
+document.getElementById("addMeasureBtn").onclick=async()=>{
+  const label=mLabel.value.trim()||"—";
+  const w=parseFloat(mWidth.value)||null, h=parseFloat(mHeight.value)||null, d=parseFloat(mDepth.value)||null;
+  if(!w && !h){ return; }
+  const btn=document.getElementById("addMeasureBtn"); btn.disabled=true; btn.innerHTML='<span class="spinner"></span>';
   try{
-    const { data } = await sb.from("profiles").select("*").eq("id", session.user.id).single();
-    profile = data;
-  }catch(e){}
-  const name = profile ? ((profile.first_name||"")+" "+(profile.last_name||"")).trim() : session.user.email;
-  document.getElementById("userName").textContent = name || "—";
-  document.getElementById("userEmail").textContent = session.user.email || "—";
-  document.getElementById("userPhone").textContent = profile?.phone || "—";
-  document.getElementById("userAvatar").textContent = (name||"?").charAt(0).toUpperCase();
-}
-function showAuth(){
-  homeScreen.classList.remove("active");
-  authWrap.style.display = "flex";
+    const {error}=await sb.from("measurements").insert({project_id:currentProject.id,label,width_cm:w,height_cm:h,depth_cm:d});
+    if(error) throw error;
+    mLabel.value=""; mWidth.value=""; mHeight.value=""; mDepth.value="";
+    await loadMeasures();
+  }catch(err){ alert(err.message||t("genericError")); }
+  finally{ btn.disabled=false; btn.textContent=t("addBtn"); }
+};
+async function delMeasure(id){
+  if(!confirm(t("confirmDel"))) return;
+  try{ await sb.from("measurements").delete().eq("id",id); await loadMeasures(); }catch(e){}
 }
 
-sb.auth.onAuthStateChange((event, session)=>{
-  if(session){ showHome(session); }
-  else { showAuth(); }
-});
+// ============ SESSION ROUTING ============
+async function onLogin(session){
+  currentSession=session;
+  await loadProfile();
+  await renderProjects();
+  showScreen("projects");
+}
+function onLogout(){
+  currentSession=null; currentProfile=null; currentProject=null;
+  showScreen("auth");
+  loginForm.style.display="block"; registerForm.style.display="none";
+}
+sb.auth.onAuthStateChange((event,session)=>{ if(session) onLogin(session); else onLogout(); });
 
-// initial check
-(async ()=>{
-  const { data:{ session } } = await sb.auth.getSession();
-  if(session){ await showHome(session); } else { showAuth(); }
-  loadingScreen.style.display = "none";
+(async()=>{
+  const {data:{session}}=await sb.auth.getSession();
+  if(session) await onLogin(session); else onLogout();
+  document.getElementById("loadingScreen").style.display="none";
 })();
 
 applyLang("ar");

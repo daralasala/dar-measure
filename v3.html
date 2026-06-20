@@ -1,0 +1,1060 @@
+<!-- v2 -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>دار الأصالة - القياس والاستشارة</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --bg:#f4f1ea; --card:#ffffff; --brand:#8a6d3b; --brand-dark:#6b5430;
+    --text:#2b2b2b; --muted:#8a8a8a; --line:#e6e0d6; --danger:#c0392b; --ok:#2e7d52;
+    --soft:#faf8f4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+  .topbar{background:var(--brand);color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.12);position:sticky;top:0;z-index:50;}
+  .topbar h1{font-size:17px;font-weight:600;}
+  .topbar .left{display:flex;align-items:center;gap:10px;}
+  .lang-switch{display:flex;gap:4px;}
+  .lang-switch button{background:rgba(255,255,255,.18);border:none;color:#fff;padding:5px 9px;border-radius:6px;font-size:12px;cursor:pointer;}
+  .lang-switch button.active{background:rgba(255,255,255,.9);color:var(--brand-dark);font-weight:700;}
+  .icon-btn{background:rgba(255,255,255,.18);border:none;color:#fff;width:34px;height:34px;border-radius:8px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .card{background:var(--card);width:100%;max-width:420px;border-radius:16px;padding:26px 22px;box-shadow:0 6px 24px rgba(0,0,0,.08);}
+  .card h2{font-size:20px;margin-bottom:6px;color:var(--brand-dark);}
+  .card .sub{color:var(--muted);font-size:13px;margin-bottom:20px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:13px;margin-bottom:6px;color:#555;}
+  .field input,.field select{width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:10px;font-size:15px;background:var(--soft);font-family:inherit;}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--brand);background:#fff;}
+  .btn{width:100%;padding:13px;background:var(--brand);color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;margin-top:6px;}
+  .btn:active{background:var(--brand-dark);}
+  .btn:disabled{opacity:.6;cursor:not-allowed;}
+  .btn-outline{background:#fff;color:var(--brand);border:1px solid var(--brand);}
+  .switch-link{text-align:center;margin-top:16px;font-size:14px;color:var(--muted);}
+  .switch-link a{color:var(--brand);font-weight:600;cursor:pointer;text-decoration:none;}
+  .msg{padding:11px 13px;border-radius:9px;font-size:13.5px;margin-bottom:14px;display:none;line-height:1.5;}
+  .msg.error{background:#fdecea;color:var(--danger);display:block;}
+  .msg.success{background:#e7f5ec;color:var(--ok);display:block;}
+  .row2{display:flex;gap:10px;}
+  .row2 .field{flex:1;}
+  .row3{display:flex;gap:8px;}
+  .row3 .field{flex:1;}
+
+  /* screens */
+  .screen{flex:1;padding:18px;display:none;flex-direction:column;max-width:600px;margin:0 auto;width:100%;}
+  .screen.active{display:flex;}
+
+  .page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .page-head h2{font-size:19px;color:var(--brand-dark);}
+  .back-btn{background:none;border:none;color:var(--brand);font-size:15px;cursor:pointer;font-weight:600;padding:6px;}
+
+  /* project cards */
+  .proj-list{display:flex;flex-direction:column;gap:12px;}
+  .proj-card{background:var(--card);border-radius:14px;padding:16px;box-shadow:0 3px 12px rgba(0,0,0,.05);cursor:pointer;border:1px solid var(--line);transition:transform .1s;}
+  .proj-card:active{transform:scale(.99);}
+  .proj-card .pc-top{display:flex;justify-content:space-between;align-items:flex-start;}
+  .proj-card h3{font-size:16px;margin-bottom:4px;}
+  .proj-card .work-type{font-size:13px;color:var(--brand);background:var(--soft);padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:6px;}
+  .proj-card .meta{font-size:12px;color:var(--muted);}
+  .status-badge{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:600;white-space:nowrap;}
+  .status-pending{background:#fff4e0;color:#a06800;}
+  .status-quoted{background:#e3f0fb;color:#1c6fb8;}
+  .status-approved{background:#e7f5ec;color:var(--ok);}
+  .status-building{background:#f0e8f9;color:#7b3fb5;}
+
+  .empty{text-align:center;padding:40px 20px;color:var(--muted);}
+  .empty .big{font-size:46px;margin-bottom:10px;}
+
+  .fab{position:fixed;bottom:22px;left:22px;background:var(--brand);color:#fff;border:none;width:56px;height:56px;border-radius:50%;font-size:28px;box-shadow:0 4px 14px rgba(138,109,59,.4);cursor:pointer;z-index:40;display:flex;align-items:center;justify-content:center;}
+  .fab:active{background:var(--brand-dark);}
+
+  /* measurement rows */
+  .measure-list{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;}
+  .measure-item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;}
+  .measure-item .mi-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .measure-item .mi-label{font-weight:600;font-size:15px;}
+  .measure-item .mi-del{background:none;border:none;color:var(--danger);cursor:pointer;font-size:16px;}
+  .measure-item .dims{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:#555;}
+  .measure-item .dims b{color:var(--brand-dark);}
+  .area-tag{margin-top:8px;font-size:13px;color:var(--ok);font-weight:600;}
+
+  .add-measure-box{background:var(--card);border:1px dashed var(--brand);border-radius:12px;padding:16px;margin-bottom:14px;}
+  .add-measure-box h4{font-size:14px;margin-bottom:12px;color:var(--brand-dark);}
+
+  .total-box{background:var(--brand);color:#fff;border-radius:12px;padding:16px;margin-top:6px;text-align:center;}
+  .total-box .t-area{font-size:24px;font-weight:700;}
+  .total-box .t-label{font-size:13px;opacity:.9;}
+
+  /* modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;}
+  .modal-overlay.active{display:flex;}
+  .modal{background:#fff;border-radius:16px;padding:22px;width:100%;max-width:400px;}
+  .modal h3{font-size:18px;margin-bottom:16px;color:var(--brand-dark);}
+
+  .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .loading-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;}
+  .loading-screen .spinner{border-color:rgba(138,109,59,.3);border-top-color:var(--brand);width:34px;height:34px;}
+
+  .profile-mini{background:var(--card);border-radius:12px;padding:14px;margin-bottom:16px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+  .profile-mini .avatar{width:44px;height:44px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;}
+  .profile-mini .pm-info{flex:1;}
+  .profile-mini .pm-info .pm-name{font-weight:600;font-size:15px;}
+  .profile-mini .pm-info .pm-sub{font-size:12px;color:var(--muted);}
+  .admin-pill{font-size:10px;background:var(--brand-dark);color:#fff;padding:2px 8px;border-radius:10px;font-weight:600;}
+  .hint{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;}
+
+  /* camera modal */
+  .cam-overlay{position:fixed;inset:0;background:#1a1a1a;display:none;flex-direction:column;z-index:200;}
+  .cam-overlay.active{display:flex;}
+  .cam-head{background:#000;color:#fff;padding:14px 16px;display:flex;align-items:center;gap:14px;font-size:15px;}
+  .cam-close{background:rgba(255,255,255,.15);border:none;color:#fff;width:32px;height:32px;border-radius:8px;font-size:16px;cursor:pointer;}
+  .cam-step{flex:1;padding:18px;overflow-y:auto;display:flex;flex-direction:column;}
+  .cam-ref-choice{background:#fff;border-radius:12px;padding:16px;margin-bottom:16px;}
+  .cam-ref-choice label{display:block;font-size:14px;margin-bottom:8px;color:#555;}
+  .cam-ref-choice select,.cam-ref-choice input{width:100%;padding:11px;border:1px solid var(--line);border-radius:9px;font-size:15px;font-family:inherit;background:var(--soft);}
+  .cam-photo-actions{margin-top:6px;}
+  .cam-instruction{background:var(--brand);color:#fff;padding:12px;border-radius:10px;text-align:center;font-size:15px;font-weight:600;margin-bottom:12px;}
+  .canvas-wrap{flex:1;display:flex;align-items:center;justify-content:center;background:#000;border-radius:10px;overflow:hidden;position:relative;min-height:300px;}
+  #camCanvas{max-width:100%;max-height:65vh;touch-action:none;display:block;}
+  .cam-controls{margin-top:14px;}
+  .cam-result{color:#fff;text-align:center;font-size:15px;margin-bottom:10px;min-height:22px;}
+  .cam-btns{display:flex;gap:10px;}
+  .cam-btns .btn{margin-top:0;}
+  .cam-final{background:var(--brand);color:#fff;border-radius:14px;padding:24px;text-align:center;font-size:30px;font-weight:700;}
+
+  /* tab bar */
+  .tabbar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;z-index:45;box-shadow:0 -2px 12px rgba(0,0,0,.06);}
+  .tab-item{flex:1;background:none;border:none;padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;color:var(--muted);}
+  .tab-item.active{color:var(--brand);}
+  .tab-ico{font-size:21px;}
+  .tab-lbl{font-size:11px;font-weight:600;}
+
+  /* gallery */
+  .cat-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;margin-bottom:6px;}
+  .cat-tab{white-space:nowrap;padding:7px 16px;border-radius:20px;border:1px solid var(--line);background:#fff;font-size:13px;cursor:pointer;color:#555;flex-shrink:0;}
+  .cat-tab.active{background:var(--brand);color:#fff;border-color:var(--brand);}
+  .fabric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+  .fab-card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 3px 12px rgba(0,0,0,.06);cursor:pointer;border:1px solid var(--line);}
+  .fab-card .fab-img{width:100%;aspect-ratio:1;object-fit:cover;background:var(--soft);display:block;}
+  .fab-card .fab-noimg{width:100%;aspect-ratio:1;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:34px;}
+  .fab-card .fab-info{padding:10px;}
+  .fab-card .fab-name{font-size:14px;font-weight:600;}
+  .fab-card .fab-code{font-size:12px;color:var(--muted);}
+  .fab-card .fab-vid{font-size:11px;color:var(--brand);margin-top:3px;}
+
+  .admin-section{margin-bottom:24px;}
+  .admin-section h4{font-size:15px;color:var(--brand-dark);margin-bottom:10px;}
+  .admin-cat-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+  .admin-cat-chip{background:#fff;border:1px solid var(--line);border-radius:20px;padding:6px 12px;font-size:13px;display:flex;align-items:center;gap:8px;}
+  .admin-cat-chip button{background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px;padding:0;}
+
+  .fab-detail-img{width:100%;border-radius:12px;max-height:280px;object-fit:cover;}
+  .fab-detail-vid{width:100%;aspect-ratio:16/9;border-radius:12px;margin-top:10px;border:none;}
+  .fab-detail h3{font-size:20px;margin:12px 0 4px;color:var(--brand-dark);}
+  .fab-detail .code{color:var(--muted);font-size:13px;margin-bottom:8px;}
+</style>
+</head>
+<body>
+
+<div class="loading-screen" id="loadingScreen"><div class="spinner"></div></div>
+
+<div class="topbar">
+  <h1 id="appTitle">دار الأصالة</h1>
+  <div class="left">
+    <div class="lang-switch">
+      <button data-lang="ar" class="active">ع</button>
+      <button data-lang="fa">فا</button>
+      <button data-lang="en">EN</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== AUTH ===== -->
+<div class="wrap" id="authWrap">
+  <div class="card">
+    <div id="msg" class="msg"></div>
+    <div id="loginForm">
+      <h2 data-i18n="loginTitle">تسجيل الدخول</h2>
+      <p class="sub" data-i18n="loginSub">أدخل بريدك وكلمة المرور للدخول</p>
+      <div class="field"><label data-i18n="email">البريد الإلكتروني</label><input type="email" id="loginEmail" autocomplete="email"></div>
+      <div class="field"><label data-i18n="password">كلمة المرور</label><input type="password" id="loginPassword" autocomplete="current-password"></div>
+      <button class="btn" id="loginBtn" data-i18n="loginBtn">دخول</button>
+      <div class="switch-link"><span data-i18n="noAccount">ليس لديك حساب؟</span> <a id="toRegister" data-i18n="createAccount">إنشاء حساب</a></div>
+    </div>
+    <div id="registerForm" style="display:none;">
+      <h2 data-i18n="regTitle">إنشاء حساب</h2>
+      <p class="sub" data-i18n="regSub">أدخل بياناتك لإنشاء حساب جديد</p>
+      <div class="row2">
+        <div class="field"><label data-i18n="firstName">الاسم</label><input type="text" id="regFirst"></div>
+        <div class="field"><label data-i18n="lastName">اللقب</label><input type="text" id="regLast"></div>
+      </div>
+      <div class="field"><label data-i18n="phone">رقم الهاتف</label><input type="tel" id="regPhone" autocomplete="tel"></div>
+      <div class="field"><label data-i18n="email">البريد الإلكتروني</label><input type="email" id="regEmail" autocomplete="email"></div>
+      <div class="field"><label data-i18n="password">كلمة المرور</label><input type="password" id="regPassword" autocomplete="new-password"></div>
+      <button class="btn" id="registerBtn" data-i18n="regBtn">تسجيل</button>
+      <div class="switch-link"><span data-i18n="haveAccount">لديك حساب بالفعل؟</span> <a id="toLogin" data-i18n="loginLink">تسجيل الدخول</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PROJECTS LIST ===== -->
+<div class="screen" id="projectsScreen">
+  <div class="profile-mini">
+    <div class="avatar" id="pmAvatar">?</div>
+    <div class="pm-info">
+      <div class="pm-name" id="pmName">—</div>
+      <div class="pm-sub" id="pmEmail">—</div>
+    </div>
+    <span class="admin-pill" id="adminPill" style="display:none;">ADMIN</span>
+    <button class="icon-btn" id="logoutBtn2" style="background:var(--soft);color:var(--danger);" title="logout">⏻</button>
+  </div>
+
+  <div class="page-head">
+    <h2 data-i18n="myProjects">مشاريعي</h2>
+  </div>
+
+  <div id="projListWrap" class="proj-list"></div>
+  <div id="projEmpty" class="empty" style="display:none;">
+    <div class="big">📐</div>
+    <p data-i18n="noProjects">لا توجد مشاريع بعد</p>
+    <p style="font-size:13px;margin-top:6px;" data-i18n="noProjectsHint">اضغط زر + لإنشاء مشروع جديد</p>
+  </div>
+
+  <button class="fab" id="newProjFab">+</button>
+</div>
+
+<!-- ===== PROJECT DETAIL (measurements) ===== -->
+<div class="screen" id="detailScreen">
+  <div class="page-head">
+    <button class="back-btn" id="backToProjects">→ <span data-i18n="back">رجوع</span></button>
+  </div>
+  <div style="margin-bottom:6px;">
+    <h2 id="detailTitle" style="color:var(--brand-dark);font-size:20px;">—</h2>
+    <span class="work-type" id="detailType" style="font-size:13px;color:var(--brand);background:var(--soft);padding:3px 10px;border-radius:20px;display:inline-block;margin-top:6px;">—</span>
+  </div>
+
+  <div style="margin:16px 0 8px;font-size:14px;font-weight:600;color:#555;" data-i18n="measurements">القياسات</div>
+  <div id="measureList" class="measure-list"></div>
+
+  <div class="add-measure-box">
+    <h4 data-i18n="addMeasure">إضافة قياس جديد</h4>
+    <div class="field"><label data-i18n="measureLabel">اسم السطح / الجدار</label><input type="text" id="mLabel" placeholder="مثال: الجدار الشمالي"></div>
+    <div class="row3">
+      <div class="field"><label data-i18n="width">العرض (سم)</label><input type="number" id="mWidth" inputmode="decimal"></div>
+      <div class="field"><label data-i18n="height">الارتفاع (سم)</label><input type="number" id="mHeight" inputmode="decimal"></div>
+      <div class="field"><label data-i18n="depth">العمق (سم)</label><input type="number" id="mDepth" inputmode="decimal"></div>
+    </div>
+    <p class="hint" data-i18n="depthHint">العمق اختياري — للقطع ثلاثية الأبعاد مثل الخزائن</p>
+    <button class="btn btn-outline" id="openCameraBtn" data-i18n="cameraBtn" style="margin-top:10px;">📷 القياس بالكاميرا</button>
+    <button class="btn" id="addMeasureBtn" data-i18n="addBtn" style="margin-top:8px;">إضافة</button>
+  </div>
+
+  <div class="total-box">
+  <div style="height:30px;"></div>
+</div>
+
+<!-- ===== FABRIC GALLERY ===== -->
+<div class="screen" id="galleryScreen">
+  <div class="page-head">
+    <h2 data-i18n="fabricGallery">معرض الأقمشة</h2>
+    <button class="icon-btn" id="adminFabBtn" style="background:var(--brand-dark);display:none;" title="admin">⚙</button>
+  </div>
+  <div id="catTabs" class="cat-tabs"></div>
+  <div id="fabricGrid" class="fabric-grid"></div>
+  <div id="fabricEmpty" class="empty" style="display:none;">
+    <div class="big">🧵</div>
+    <p data-i18n="noFabrics">لا توجد أقمشة بعد</p>
+  </div>
+  <div style="height:80px;"></div>
+</div>
+
+<!-- ===== ADMIN FABRIC PANEL ===== -->
+<div class="screen" id="adminScreen">
+  <div class="page-head">
+    <button class="back-btn" id="adminBack">→ <span data-i18n="back">رجوع</span></button>
+    <h2 data-i18n="manageGallery">إدارة المعرض</h2>
+  </div>
+
+  <div class="admin-section">
+    <h4 data-i18n="categories">الفئات</h4>
+    <div id="adminCatList" class="admin-cat-list"></div>
+    <div class="add-measure-box" style="border-color:var(--brand);">
+      <div class="field"><label data-i18n="catNameAr">اسم الفئة (عربي)</label><input type="text" id="newCatAr"></div>
+      <div class="row2">
+        <div class="field"><label data-i18n="catNameFa">فارسی</label><input type="text" id="newCatFa"></div>
+        <div class="field"><label data-i18n="catNameEn">English</label><input type="text" id="newCatEn"></div>
+      </div>
+      <button class="btn" id="addCatBtn" data-i18n="addCategory">إضافة فئة</button>
+    </div>
+  </div>
+
+  <div class="admin-section">
+    <h4 data-i18n="addFabric">إضافة قماش</h4>
+    <div class="add-measure-box" style="border-color:var(--brand);">
+      <div id="fabMsg" class="msg"></div>
+      <div class="field"><label data-i18n="fabCategory">الفئة</label><select id="fabCat"></select></div>
+      <div class="field"><label data-i18n="fabCode">الكود / الرقم</label><input type="text" id="fabCode" placeholder="مثال: V-102"></div>
+      <div class="field"><label data-i18n="fabNameAr">اسم القماش (عربي)</label><input type="text" id="fabNameAr"></div>
+      <div class="row2">
+        <div class="field"><label>فارسی</label><input type="text" id="fabNameFa"></div>
+        <div class="field"><label>English</label><input type="text" id="fabNameEn"></div>
+      </div>
+      <div class="field">
+        <label data-i18n="fabImage">صورة القماش</label>
+        <label class="btn btn-outline" style="display:block;text-align:center;cursor:pointer;margin-top:0;">
+          <span id="fabImgLabel" data-i18n="chooseImage">📷 اختر صورة</span>
+          <input type="file" id="fabImageFile" accept="image/*" style="display:none;">
+        </label>
+        <div id="fabImgPreview" style="margin-top:8px;display:none;"><img style="max-width:100%;border-radius:8px;max-height:160px;"></div>
+      </div>
+      <div class="field"><label data-i18n="fabVideo">رابط فيديو يوتيوب (اختياري)</label><input type="text" id="fabVideo" placeholder="https://youtu.be/..." dir="ltr"></div>
+      <button class="btn" id="addFabBtn" data-i18n="saveFabric">حفظ القماش</button>
+    </div>
+  </div>
+  <div style="height:40px;"></div>
+</div>
+
+<!-- ===== FABRIC DETAIL MODAL ===== -->
+<div class="modal-overlay" id="fabricModal">
+  <div class="modal" style="max-width:460px;">
+    <div id="fabModalContent"></div>
+    <button class="btn btn-outline" id="fabModalClose" data-i18n="close" style="margin-top:14px;">إغلاق</button>
+  </div>
+</div>
+
+<!-- ===== BOTTOM TAB BAR ===== -->
+<div class="tabbar" id="tabbar" style="display:none;">
+  <button class="tab-item active" data-tab="projects">
+    <span class="tab-ico">📐</span><span class="tab-lbl" data-i18n="tabProjects">المشاريع</span>
+  </button>
+  <button class="tab-item" data-tab="gallery">
+    <span class="tab-ico">🧵</span><span class="tab-lbl" data-i18n="tabGallery">الأقمشة</span>
+  </button>
+</div>
+
+<!-- ===== NEW PROJECT MODAL ===== -->
+<div class="modal-overlay" id="newProjModal">
+  <div class="modal">
+    <h3 data-i18n="newProject">مشروع جديد</h3>
+    <div id="projMsg" class="msg"></div>
+    <div class="field"><label data-i18n="projectTitle">عنوان المشروع</label><input type="text" id="projTitle" placeholder="مثال: غرفة المعيشة"></div>
+    <div class="field"><label data-i18n="workType">نوع العمل</label>
+      <select id="projWorkType">
+        <option value="tv_unit" data-i18n-opt="tv_unit">وحدة تلفزيون</option>
+        <option value="wardrobe" data-i18n-opt="wardrobe">خزانة ملابس</option>
+        <option value="curtains" data-i18n-opt="curtains">ستائر</option>
+        <option value="kitchen" data-i18n-opt="kitchen">مطبخ</option>
+        <option value="room" data-i18n-opt="room">غرفة كاملة</option>
+        <option value="other" data-i18n-opt="other">أخرى</option>
+      </select>
+    </div>
+    <button class="btn" id="createProjBtn" data-i18n="create">إنشاء</button>
+    <button class="btn btn-outline" id="cancelProjBtn" data-i18n="cancel" style="margin-top:8px;">إلغاء</button>
+  </div>
+</div>
+
+<!-- ===== CAMERA MEASURE MODAL ===== -->
+<div class="cam-overlay" id="camModal">
+  <div class="cam-head">
+    <button class="cam-close" id="camClose">✕</button>
+    <span id="camStepTitle" data-i18n="camStep1">الخطوة 1: التقط صورة</span>
+  </div>
+
+  <!-- step 0: choose ref + take photo -->
+  <div class="cam-step" id="camStepPhoto">
+    <div class="cam-ref-choice">
+      <label data-i18n="refChoose">اختر مرجع القياس:</label>
+      <select id="refType">
+        <option value="29.7" data-i18n-opt="refA4L">ورقة A4 — الطول (29.7 سم)</option>
+        <option value="21" data-i18n-opt="refA4W">ورقة A4 — العرض (21 سم)</option>
+        <option value="8.56" data-i18n-opt="refCard">بطاقة بنكية (8.56 سم)</option>
+        <option value="custom" data-i18n-opt="refCustom">مرجع مخصص (متر/مسطرة)</option>
+      </select>
+      <div id="customRefBox" style="display:none;margin-top:8px;">
+        <input type="number" id="customRefCm" inputmode="decimal" placeholder="الطول بالسنتيمتر">
+      </div>
+    </div>
+    <div class="cam-photo-actions">
+      <label class="btn" style="display:block;text-align:center;cursor:pointer;">
+        <span data-i18n="takePhoto">📷 التقط أو اختر صورة</span>
+        <input type="file" id="camFile" accept="image/*" capture="environment" style="display:none;">
+      </label>
+    </div>
+    <p class="hint" data-i18n="photoHint" style="text-align:center;margin-top:10px;">ضع المرجع (ورقة A4) على الجدار والتقط صورة من الأمام مباشرة</p>
+  </div>
+
+  <!-- step 1+2: canvas for tapping -->
+  <div class="cam-step" id="camStepCanvas" style="display:none;">
+    <div class="cam-instruction" id="camInstruction" data-i18n="tapRef">انقر على طرفي المرجع (نقطتان)</div>
+    <div class="canvas-wrap">
+      <canvas id="camCanvas"></canvas>
+    </div>
+    <div class="cam-controls">
+      <div class="cam-result" id="camResult"></div>
+      <div class="cam-btns">
+        <button class="btn btn-outline" id="camReset" data-i18n="reset">إعادة</button>
+        <button class="btn" id="camNext" data-i18n="next" disabled>التالي</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- step 3: assign result -->
+  <div class="cam-step" id="camStepAssign" style="display:none;">
+    <div class="cam-final" id="camFinal">—</div>
+    <p data-i18n="assignTo" style="text-align:center;margin:14px 0 10px;color:#555;">أضف هذا القياس إلى:</p>
+    <button class="btn" id="assignWidth" data-i18n="asWidth">العرض</button>
+    <button class="btn" id="assignHeight" data-i18n="asHeight" style="margin-top:8px;">الارتفاع</button>
+    <button class="btn" id="assignDepth" data-i18n="asDepth" style="margin-top:8px;">العمق</button>
+    <button class="btn btn-outline" id="camRemeasure" data-i18n="measureAgain" style="margin-top:12px;">قياس آخر</button>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://iwzoawrosnvddlytxmil.supabase.co";
+const SUPABASE_KEY = "sb_publishable_P7wchWGrULkotCQ0K1R3uA_XVz3Od9m";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ============ I18N ============
+const I18N = {
+  ar:{
+    appTitle:"دار الأصالة", loginTitle:"تسجيل الدخول", loginSub:"أدخل بريدك وكلمة المرور للدخول",
+    email:"البريد الإلكتروني", password:"كلمة المرور", loginBtn:"دخول", noAccount:"ليس لديك حساب؟", createAccount:"إنشاء حساب",
+    regTitle:"إنشاء حساب", regSub:"أدخل بياناتك لإنشاء حساب جديد", firstName:"الاسم", lastName:"اللقب", phone:"رقم الهاتف", regBtn:"تسجيل",
+    haveAccount:"لديك حساب بالفعل؟", loginLink:"تسجيل الدخول", logout:"تسجيل الخروج",
+    fillAll:"يرجى تعبئة جميع الحقول", regSuccess:"تم إنشاء الحساب بنجاح!", loginError:"البريد أو كلمة المرور غير صحيحة",
+    genericError:"حدث خطأ، حاول مرة أخرى", pwShort:"كلمة المرور يجب أن تكون 6 أحرف على الأقل",
+    myProjects:"مشاريعي", noProjects:"لا توجد مشاريع بعد", noProjectsHint:"اضغط زر + لإنشاء مشروع جديد",
+    newProject:"مشروع جديد", projectTitle:"عنوان المشروع", workType:"نوع العمل", create:"إنشاء", cancel:"إلغاء",
+    back:"رجوع", measurements:"القياسات", addMeasure:"إضافة قياس جديد", measureLabel:"اسم السطح / الجدار",
+    width:"العرض (سم)", height:"الارتفاع (سم)", depth:"العمق (سم)", depthHint:"العمق اختياري — للقطع ثلاثية الأبعاد مثل الخزائن",
+    addBtn:"إضافة", totalArea:"إجمالي المساحة", noMeasures:"لا توجد قياسات بعد",
+    tv_unit:"وحدة تلفزيون", wardrobe:"خزانة ملابس", curtains:"ستائر", kitchen:"مطبخ", room:"غرفة كاملة", other:"أخرى",
+    status_pending:"قيد المراجعة", status_quoted:"تم التسعير", status_approved:"تمت الموافقة", status_building:"قيد التنفيذ",
+    projTitleReq:"يرجى إدخال عنوان المشروع", confirmDel:"حذف هذا القياس؟",
+    cameraBtn:"📷 القياس بالكاميرا", camStep1:"الخطوة 1: التقط صورة",
+    refChoose:"اختر مرجع القياس:", refA4L:"ورقة A4 — الطول (29.7 سم)", refA4W:"ورقة A4 — العرض (21 سم)",
+    refCard:"بطاقة بنكية (8.56 سم)", refCustom:"مرجع مخصص (متر/مسطرة)", takePhoto:"📷 التقط أو اختر صورة",
+    photoHint:"ضع المرجع (ورقة A4) على الجدار والتقط صورة من الأمام مباشرة",
+    tapRef:"انقر على طرفي المرجع (نقطتان)", tapTarget:"انقر على طرفي ما تريد قياسه (نقطتان)",
+    reset:"إعادة", next:"التالي", assignTo:"أضف هذا القياس إلى:", asWidth:"العرض", asHeight:"الارتفاع", asDepth:"العمق",
+    measureAgain:"قياس آخر", refSet:"تم تحديد المرجع ✓", customRefReq:"أدخل طول المرجع",
+    fabricGallery:"معرض الأقمشة", noFabrics:"لا توجد أقمشة بعد", tabProjects:"المشاريع", tabGallery:"الأقمشة",
+    manageGallery:"إدارة المعرض", categories:"الفئات", catNameAr:"اسم الفئة (عربي)", catNameFa:"فارسی", catNameEn:"English",
+    addCategory:"إضافة فئة", addFabric:"إضافة قماش", fabCategory:"الفئة", fabCode:"الكود / الرقم", fabNameAr:"اسم القماش (عربي)",
+    fabImage:"صورة القماش", chooseImage:"📷 اختر صورة", fabVideo:"رابط فيديو يوتيوب (اختياري)", saveFabric:"حفظ القماش",
+    close:"إغلاق", allCats:"الكل", watchVideo:"▶ شاهد الفيديو", uploading:"جاري الرفع...",
+    fabSaved:"تم حفظ القماش ✓", needImage:"يرجى اختيار صورة", needName:"يرجى إدخال الاسم", confirmDelFab:"حذف هذا القماش؟",
+    confirmDelCat:"حذف هذه الفئة؟", selectFabric:"اختر هذا القماش", fabricSelected:"تم اختيار القماش ✓", deleteBtn:"حذف"
+  },
+  fa:{
+    appTitle:"دار الأصالة", loginTitle:"ورود", loginSub:"ایمیل و رمز عبور خود را وارد کنید",
+    email:"ایمیل", password:"رمز عبور", loginBtn:"ورود", noAccount:"حساب نداری؟", createAccount:"ساخت حساب",
+    regTitle:"ساخت حساب", regSub:"اطلاعاتت را برای ساخت حساب وارد کن", firstName:"نام", lastName:"نام خانوادگی", phone:"شماره موبایل", regBtn:"ثبت‌نام",
+    haveAccount:"حساب داری؟", loginLink:"ورود", logout:"خروج",
+    fillAll:"لطفاً همه فیلدها را پر کن", regSuccess:"حساب با موفقیت ساخته شد!", loginError:"ایمیل یا رمز عبور اشتباه است",
+    genericError:"خطایی رخ داد، دوباره تلاش کن", pwShort:"رمز عبور باید حداقل ۶ کاراکتر باشد",
+    myProjects:"پروژه‌های من", noProjects:"هنوز پروژه‌ای نیست", noProjectsHint:"دکمه + را بزن تا پروژه بسازی",
+    newProject:"پروژه جدید", projectTitle:"عنوان پروژه", workType:"نوع کار", create:"ساختن", cancel:"لغو",
+    back:"بازگشت", measurements:"اندازه‌ها", addMeasure:"افزودن اندازه جدید", measureLabel:"نام سطح / دیوار",
+    width:"عرض (سانتی‌متر)", height:"ارتفاع (سانتی‌متر)", depth:"عمق (سانتی‌متر)", depthHint:"عمق اختیاری است — برای قطعات سه‌بعدی مثل کمد",
+    addBtn:"افزودن", totalArea:"مجموع متراژ", noMeasures:"هنوز اندازه‌ای نیست",
+    tv_unit:"میز تلویزیون", wardrobe:"کمد لباس", curtains:"پرده", kitchen:"آشپزخانه", room:"اتاق کامل", other:"سایر",
+    status_pending:"در انتظار بررسی", status_quoted:"قیمت داده شد", status_approved:"تأیید شد", status_building:"در حال ساخت",
+    projTitleReq:"لطفاً عنوان پروژه را وارد کن", confirmDel:"این اندازه حذف شود؟",
+    cameraBtn:"📷 اندازه‌گیری با دوربین", camStep1:"مرحله ۱: عکس بگیر",
+    refChoose:"مرجع مقیاس را انتخاب کن:", refA4L:"برگه A4 — طول (۲۹.۷ سانتی‌متر)", refA4W:"برگه A4 — عرض (۲۱ سانتی‌متر)",
+    refCard:"کارت بانکی (۸.۵۶ سانتی‌متر)", refCustom:"مرجع دلخواه (متر/خط‌کش)", takePhoto:"📷 عکس بگیر یا انتخاب کن",
+    photoHint:"مرجع (برگه A4) را روی دیوار بچسبان و از روبه‌رو عکس بگیر",
+    tapRef:"دو سر مرجع را لمس کن (دو نقطه)", tapTarget:"دو سر چیزی که می‌خواهی اندازه بگیری را لمس کن (دو نقطه)",
+    reset:"از نو", next:"بعدی", assignTo:"این اندازه را اضافه کن به:", asWidth:"عرض", asHeight:"ارتفاع", asDepth:"عمق",
+    measureAgain:"اندازه‌گیری دیگر", refSet:"مرجع تعیین شد ✓", customRefReq:"طول مرجع را وارد کن",
+    fabricGallery:"گالری پارچه‌ها", noFabrics:"هنوز پارچه‌ای نیست", tabProjects:"پروژه‌ها", tabGallery:"پارچه‌ها",
+    manageGallery:"مدیریت گالری", categories:"دسته‌بندی‌ها", catNameAr:"نام دسته (عربی)", catNameFa:"فارسی", catNameEn:"English",
+    addCategory:"افزودن دسته", addFabric:"افزودن پارچه", fabCategory:"دسته", fabCode:"کد / شماره", fabNameAr:"نام پارچه (عربی)",
+    fabImage:"عکس پارچه", chooseImage:"📷 انتخاب عکس", fabVideo:"لینک ویدیوی یوتیوب (اختیاری)", saveFabric:"ذخیره پارچه",
+    close:"بستن", allCats:"همه", watchVideo:"▶ تماشای ویدیو", uploading:"در حال آپلود...",
+    fabSaved:"پارچه ذخیره شد ✓", needImage:"لطفاً یک عکس انتخاب کن", needName:"لطفاً نام را وارد کن", confirmDelFab:"این پارچه حذف شود؟",
+    confirmDelCat:"این دسته حذف شود؟", selectFabric:"انتخاب این پارچه", fabricSelected:"پارچه انتخاب شد ✓", deleteBtn:"حذف"
+  },
+  en:{
+    appTitle:"Dar Al-Asala", loginTitle:"Login", loginSub:"Enter your email and password",
+    email:"Email", password:"Password", loginBtn:"Login", noAccount:"Don't have an account?", createAccount:"Create account",
+    regTitle:"Create Account", regSub:"Enter your details to register", firstName:"First name", lastName:"Last name", phone:"Phone", regBtn:"Register",
+    haveAccount:"Already have an account?", loginLink:"Login", logout:"Logout",
+    fillAll:"Please fill all fields", regSuccess:"Account created successfully!", loginError:"Wrong email or password",
+    genericError:"An error occurred, try again", pwShort:"Password must be at least 6 characters",
+    myProjects:"My Projects", noProjects:"No projects yet", noProjectsHint:"Tap + to create a new project",
+    newProject:"New Project", projectTitle:"Project title", workType:"Work type", create:"Create", cancel:"Cancel",
+    back:"Back", measurements:"Measurements", addMeasure:"Add new measurement", measureLabel:"Surface / Wall name",
+    width:"Width (cm)", height:"Height (cm)", depth:"Depth (cm)", depthHint:"Depth optional — for 3D pieces like wardrobes",
+    addBtn:"Add", totalArea:"Total area", noMeasures:"No measurements yet",
+    tv_unit:"TV Unit", wardrobe:"Wardrobe", curtains:"Curtains", kitchen:"Kitchen", room:"Full room", other:"Other",
+    status_pending:"Pending review", status_quoted:"Quoted", status_approved:"Approved", status_building:"In production",
+    projTitleReq:"Please enter a project title", confirmDel:"Delete this measurement?",
+    cameraBtn:"📷 Measure with camera", camStep1:"Step 1: Take a photo",
+    refChoose:"Choose scale reference:", refA4L:"A4 paper — Length (29.7 cm)", refA4W:"A4 paper — Width (21 cm)",
+    refCard:"Bank card (8.56 cm)", refCustom:"Custom reference (ruler/tape)", takePhoto:"📷 Take or choose photo",
+    photoHint:"Place the reference (A4 paper) on the wall and shoot straight from the front",
+    tapRef:"Tap the two ends of the reference (2 points)", tapTarget:"Tap the two ends of what you're measuring (2 points)",
+    reset:"Reset", next:"Next", assignTo:"Add this measurement to:", asWidth:"Width", asHeight:"Height", asDepth:"Depth",
+    measureAgain:"Measure again", refSet:"Reference set ✓", customRefReq:"Enter reference length",
+    fabricGallery:"Fabric Gallery", noFabrics:"No fabrics yet", tabProjects:"Projects", tabGallery:"Fabrics",
+    manageGallery:"Manage Gallery", categories:"Categories", catNameAr:"Category name (Arabic)", catNameFa:"Persian", catNameEn:"English",
+    addCategory:"Add category", addFabric:"Add fabric", fabCategory:"Category", fabCode:"Code / Number", fabNameAr:"Fabric name (Arabic)",
+    fabImage:"Fabric image", chooseImage:"📷 Choose image", fabVideo:"YouTube video link (optional)", saveFabric:"Save fabric",
+    close:"Close", allCats:"All", watchVideo:"▶ Watch video", uploading:"Uploading...",
+    fabSaved:"Fabric saved ✓", needImage:"Please choose an image", needName:"Please enter a name", confirmDelFab:"Delete this fabric?",
+    confirmDelCat:"Delete this category?", selectFabric:"Select this fabric", fabricSelected:"Fabric selected ✓", deleteBtn:"Delete"
+  }
+};
+let currentLang = "ar";
+function t(key){ return (I18N[currentLang] && I18N[currentLang][key]) || key; }
+
+function applyLang(lang){
+  currentLang = lang;
+  const dict = I18N[lang];
+  document.documentElement.lang = lang;
+  document.documentElement.dir = (lang==="en") ? "ltr" : "rtl";
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+    const k = el.getAttribute("data-i18n"); if(dict[k]) el.textContent = dict[k];
+  });
+  document.querySelectorAll("[data-i18n-opt]").forEach(el=>{
+    const k = el.getAttribute("data-i18n-opt"); if(dict[k]) el.textContent = dict[k];
+  });
+  document.querySelectorAll(".lang-switch button").forEach(b=>b.classList.toggle("active", b.dataset.lang===lang));
+  // re-render dynamic content
+  if(currentProject) renderMeasures();
+  if(currentSession) renderProjects();
+  if(typeof galleryScreen!=="undefined" && galleryScreen.classList.contains("active")){ renderCatTabs(); renderFabrics(); }
+}
+document.querySelectorAll(".lang-switch button").forEach(b=>b.addEventListener("click", ()=>applyLang(b.dataset.lang)));
+
+// ============ UI HELPERS ============
+const msgBox = document.getElementById("msg");
+function showMsg(text,type){ msgBox.textContent=text; msgBox.className="msg "+type; }
+function clearMsg(){ msgBox.className="msg"; msgBox.textContent=""; }
+
+const loginForm=document.getElementById("loginForm"), registerForm=document.getElementById("registerForm");
+document.getElementById("toRegister").onclick=()=>{loginForm.style.display="none";registerForm.style.display="block";clearMsg();};
+document.getElementById("toLogin").onclick=()=>{registerForm.style.display="none";loginForm.style.display="block";clearMsg();};
+
+// ============ AUTH ============
+const registerBtn=document.getElementById("registerBtn");
+registerBtn.onclick=async()=>{
+  clearMsg();
+  const first=regFirst.value.trim(),last=regLast.value.trim(),phone=regPhone.value.trim(),email=regEmail.value.trim(),pw=regPassword.value;
+  if(!first||!last||!phone||!email||!pw){showMsg(t("fillAll"),"error");return;}
+  if(pw.length<6){showMsg(t("pwShort"),"error");return;}
+  registerBtn.disabled=true; registerBtn.innerHTML='<span class="spinner"></span>';
+  try{
+    const {data,error}=await sb.auth.signUp({email,password:pw});
+    if(error) throw error;
+    const userId=data.user?.id;
+    if(userId){
+      const {error:pErr}=await sb.from("profiles").insert({id:userId,first_name:first,last_name:last,phone,email,role:"customer"});
+      if(pErr) console.warn("profile:",pErr.message);
+    }
+    await sb.auth.signInWithPassword({email,password:pw});
+  }catch(err){ showMsg(err.message||t("genericError"),"error"); }
+  finally{ registerBtn.disabled=false; registerBtn.textContent=t("regBtn"); }
+};
+const loginBtn=document.getElementById("loginBtn");
+loginBtn.onclick=async()=>{
+  clearMsg();
+  const email=loginEmail.value.trim(),pw=loginPassword.value;
+  if(!email||!pw){showMsg(t("fillAll"),"error");return;}
+  loginBtn.disabled=true; loginBtn.innerHTML='<span class="spinner"></span>';
+  try{ const {error}=await sb.auth.signInWithPassword({email,password:pw}); if(error) showMsg(t("loginError"),"error"); }
+  catch(err){ showMsg(t("genericError"),"error"); }
+  finally{ loginBtn.disabled=false; loginBtn.textContent=t("loginBtn"); }
+};
+document.getElementById("logoutBtn2").onclick=async()=>{ await sb.auth.signOut(); };
+
+// ============ STATE ============
+let currentSession=null, currentProfile=null, currentProject=null, measures=[];
+
+// ============ SCREENS ============
+const authWrap=document.getElementById("authWrap");
+const projectsScreen=document.getElementById("projectsScreen");
+const detailScreen=document.getElementById("detailScreen");
+const galleryScreen=document.getElementById("galleryScreen");
+const adminScreen=document.getElementById("adminScreen");
+const tabbar=document.getElementById("tabbar");
+function showScreen(name){
+  authWrap.style.display = name==="auth" ? "flex" : "none";
+  projectsScreen.classList.toggle("active", name==="projects");
+  detailScreen.classList.toggle("active", name==="detail");
+  galleryScreen.classList.toggle("active", name==="gallery");
+  adminScreen.classList.toggle("active", name==="admin");
+  // tab bar visible only on main tabs
+  tabbar.style.display = (name==="projects"||name==="gallery") ? "flex" : "none";
+  document.querySelectorAll(".tab-item").forEach(t=>t.classList.toggle("active", t.dataset.tab===name));
+}
+// tab switching
+document.querySelectorAll(".tab-item").forEach(tab=>{
+  tab.onclick=()=>{
+    const target=tab.dataset.tab;
+    showScreen(target);
+    if(target==="gallery") loadGallery();
+    if(target==="projects") renderProjects();
+  };
+});
+
+// ============ PROFILE / PROJECTS ============
+async function loadProfile(){
+  try{ const {data}=await sb.from("profiles").select("*").eq("id",currentSession.user.id).single(); currentProfile=data; }catch(e){ currentProfile=null; }
+  const name = currentProfile ? ((currentProfile.first_name||"")+" "+(currentProfile.last_name||"")).trim() : currentSession.user.email;
+  pmName.textContent=name||"—";
+  pmEmail.textContent=currentSession.user.email||"—";
+  pmAvatar.textContent=(name||"?").charAt(0).toUpperCase();
+  document.getElementById("adminPill").style.display = (currentProfile?.role==="admin") ? "inline-block" : "none";
+}
+
+let projectsCache=[];
+async function renderProjects(){
+  const wrap=document.getElementById("projListWrap"), empty=document.getElementById("projEmpty");
+  const {data,error}=await sb.from("projects").select("*").order("created_at",{ascending:false});
+  if(error){ console.warn(error.message); }
+  projectsCache=data||[];
+  wrap.innerHTML="";
+  if(projectsCache.length===0){ empty.style.display="block"; return; }
+  empty.style.display="none";
+  projectsCache.forEach(p=>{
+    const card=document.createElement("div");
+    card.className="proj-card";
+    const dt=new Date(p.created_at).toLocaleDateString();
+    card.innerHTML=`
+      <div class="pc-top">
+        <div>
+          <span class="work-type">${t(p.work_type)||p.work_type||""}</span>
+          <h3>${escapeHtml(p.title||"—")}</h3>
+          <div class="meta">${dt}</div>
+        </div>
+        <span class="status-badge status-${p.status||'pending'}">${t('status_'+(p.status||'pending'))}</span>
+      </div>`;
+    card.onclick=()=>openProject(p);
+    wrap.appendChild(card);
+  });
+}
+function escapeHtml(s){ return (s||"").replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// new project modal
+const newProjModal=document.getElementById("newProjModal");
+document.getElementById("newProjFab").onclick=()=>{ projTitle.value=""; document.getElementById("projMsg").className="msg"; newProjModal.classList.add("active"); };
+document.getElementById("cancelProjBtn").onclick=()=>newProjModal.classList.remove("active");
+document.getElementById("createProjBtn").onclick=async()=>{
+  const title=projTitle.value.trim(), wtype=projWorkType.value;
+  const pm=document.getElementById("projMsg");
+  if(!title){ pm.textContent=t("projTitleReq"); pm.className="msg error"; return; }
+  const btn=document.getElementById("createProjBtn"); btn.disabled=true; btn.innerHTML='<span class="spinner"></span>';
+  try{
+    const {error}=await sb.from("projects").insert({user_id:currentSession.user.id,title,work_type:wtype,status:"pending"});
+    if(error) throw error;
+    newProjModal.classList.remove("active");
+    await renderProjects();
+  }catch(err){ pm.textContent=err.message||t("genericError"); pm.className="msg error"; }
+  finally{ btn.disabled=false; btn.textContent=t("create"); }
+};
+
+// ============ PROJECT DETAIL / MEASUREMENTS ============
+async function openProject(p){
+  currentProject=p;
+  detailTitle.textContent=p.title||"—";
+  detailType.textContent=t(p.work_type)||p.work_type||"";
+  showScreen("detail");
+  await loadMeasures();
+}
+document.getElementById("backToProjects").onclick=()=>{ currentProject=null; showScreen("projects"); renderProjects(); };
+
+async function loadMeasures(){
+  const {data,error}=await sb.from("measurements").select("*").eq("project_id",currentProject.id).order("created_at",{ascending:true});
+  measures=data||[];
+  renderMeasures();
+}
+function renderMeasures(){
+  const list=document.getElementById("measureList");
+  list.innerHTML="";
+  if(measures.length===0){
+    list.innerHTML=`<div class="empty" style="padding:20px;"><p>${t("noMeasures")}</p></div>`;
+  }
+  let totalArea=0;
+  measures.forEach(m=>{
+    const w=parseFloat(m.width_cm)||0, h=parseFloat(m.height_cm)||0;
+    const area=(w*h)/10000; // cm² -> m²
+    totalArea+=area;
+    const item=document.createElement("div");
+    item.className="measure-item";
+    let dims=`<span><b>${t("width")}:</b> ${w} </span><span><b>${t("height")}:</b> ${h} </span>`;
+    if(m.depth_cm) dims+=`<span><b>${t("depth")}:</b> ${m.depth_cm} </span>`;
+    item.innerHTML=`
+      <div class="mi-top">
+        <span class="mi-label">${escapeHtml(m.label||"—")}</span>
+        <button class="mi-del" data-id="${m.id}">🗑</button>
+      </div>
+      <div class="dims">${dims}</div>
+      <div class="area-tag">${area.toFixed(2)} م²</div>`;
+    item.querySelector(".mi-del").onclick=()=>delMeasure(m.id);
+    list.appendChild(item);
+  });
+  document.getElementById("totalArea").textContent=totalArea.toFixed(2)+" م²";
+}
+document.getElementById("addMeasureBtn").onclick=async()=>{
+  const label=mLabel.value.trim()||"—";
+  const w=parseFloat(mWidth.value)||null, h=parseFloat(mHeight.value)||null, d=parseFloat(mDepth.value)||null;
+  if(!w && !h){ return; }
+  const btn=document.getElementById("addMeasureBtn"); btn.disabled=true; btn.innerHTML='<span class="spinner"></span>';
+  try{
+    const {error}=await sb.from("measurements").insert({project_id:currentProject.id,label,width_cm:w,height_cm:h,depth_cm:d});
+    if(error) throw error;
+    mLabel.value=""; mWidth.value=""; mHeight.value=""; mDepth.value="";
+    await loadMeasures();
+  }catch(err){ alert(err.message||t("genericError")); }
+  finally{ btn.disabled=false; btn.textContent=t("addBtn"); }
+};
+async function delMeasure(id){
+  if(!confirm(t("confirmDel"))) return;
+  try{ await sb.from("measurements").delete().eq("id",id); await loadMeasures(); }catch(e){}
+}
+
+// ============ CAMERA MEASURE ============
+const camModal=document.getElementById("camModal");
+const camCanvas=document.getElementById("camCanvas");
+const ctx=camCanvas.getContext("2d");
+let camImg=null, camPoints=[], camPhase="ref"; // ref | target
+let refRealCm=29.7, refPxLen=0, lastResultCm=0;
+let canvasScale=1;
+
+function openCamera(){
+  // reset
+  camPoints=[]; camPhase="ref"; refPxLen=0; lastResultCm=0; camImg=null;
+  document.getElementById("camStepPhoto").style.display="flex";
+  document.getElementById("camStepCanvas").style.display="none";
+  document.getElementById("camStepAssign").style.display="none";
+  document.getElementById("camStepTitle").textContent=t("camStep1");
+  document.getElementById("refType").value="29.7";
+  document.getElementById("customRefBox").style.display="none";
+  document.getElementById("customRefCm").value="";
+  camModal.classList.add("active");
+}
+document.getElementById("openCameraBtn").onclick=openCamera;
+document.getElementById("camClose").onclick=()=>camModal.classList.remove("active");
+
+document.getElementById("refType").onchange=function(){
+  document.getElementById("customRefBox").style.display = this.value==="custom" ? "block" : "none";
+};
+
+document.getElementById("camFile").onchange=function(e){
+  const file=e.target.files[0];
+  if(!file) return;
+  // resolve reference length
+  const rt=document.getElementById("refType").value;
+  if(rt==="custom"){
+    const c=parseFloat(document.getElementById("customRefCm").value);
+    if(!c||c<=0){ alert(t("customRefReq")); this.value=""; return; }
+    refRealCm=c;
+  } else { refRealCm=parseFloat(rt); }
+
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      camImg=img;
+      setupCanvas();
+      // switch to canvas step
+      document.getElementById("camStepPhoto").style.display="none";
+      document.getElementById("camStepCanvas").style.display="flex";
+      camPhase="ref"; camPoints=[];
+      document.getElementById("camInstruction").textContent=t("tapRef");
+      document.getElementById("camStepTitle").textContent=t("tapRef");
+      drawCanvas();
+      updateCamButtons();
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+};
+
+function setupCanvas(){
+  // fit image within max dims while keeping aspect
+  const maxW=Math.min(window.innerWidth-36, 900);
+  const maxH=window.innerHeight*0.65;
+  let w=camImg.width, h=camImg.height;
+  const ratio=Math.min(maxW/w, maxH/h, 1);
+  canvasScale=ratio;
+  camCanvas.width=w*ratio;
+  camCanvas.height=h*ratio;
+}
+function drawCanvas(){
+  ctx.clearRect(0,0,camCanvas.width,camCanvas.height);
+  if(camImg) ctx.drawImage(camImg,0,0,camCanvas.width,camCanvas.height);
+  // draw points
+  camPoints.forEach((p,i)=>{
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,8,0,Math.PI*2);
+    ctx.fillStyle = camPhase==="ref" ? "#2e7d52" : "#c0392b";
+    ctx.fill();
+    ctx.lineWidth=2; ctx.strokeStyle="#fff"; ctx.stroke();
+    ctx.fillStyle="#fff"; ctx.font="bold 12px sans-serif"; ctx.textAlign="center";
+    ctx.fillText(i+1, p.x, p.y+4);
+  });
+  // draw line between 2 points
+  if(camPoints.length===2){
+    ctx.beginPath();
+    ctx.moveTo(camPoints[0].x,camPoints[0].y);
+    ctx.lineTo(camPoints[1].x,camPoints[1].y);
+    ctx.lineWidth=3;
+    ctx.strokeStyle = camPhase==="ref" ? "#2e7d52" : "#c0392b";
+    ctx.stroke();
+  }
+}
+function canvasPoint(e){
+  const rect=camCanvas.getBoundingClientRect();
+  const cx=(e.touches? e.touches[0].clientX : e.clientX)-rect.left;
+  const cy=(e.touches? e.touches[0].clientY : e.clientY)-rect.top;
+  return {x:cx*(camCanvas.width/rect.width), y:cy*(camCanvas.height/rect.height)};
+}
+function handleCanvasTap(e){
+  e.preventDefault();
+  if(camPoints.length>=2) return;
+  camPoints.push(canvasPoint(e));
+  drawCanvas();
+  updateCamButtons();
+}
+camCanvas.addEventListener("click",handleCanvasTap);
+camCanvas.addEventListener("touchstart",handleCanvasTap,{passive:false});
+
+function updateCamButtons(){
+  const nextBtn=document.getElementById("camNext");
+  const res=document.getElementById("camResult");
+  nextBtn.disabled = camPoints.length!==2;
+  if(camPoints.length===2){
+    if(camPhase==="ref"){
+      res.textContent="";
+    } else {
+      const px=distancePx(camPoints[0],camPoints[1]);
+      const cm=(refRealCm/refPxLen)*px;
+      lastResultCm=cm;
+      res.textContent=cm.toFixed(1)+" cm";
+    }
+  } else { res.textContent=""; }
+}
+function distancePx(a,b){ return Math.sqrt(Math.pow(b.x-a.x,2)+Math.pow(b.y-a.y,2)); }
+
+document.getElementById("camReset").onclick=()=>{
+  camPoints=[]; drawCanvas(); updateCamButtons();
+};
+document.getElementById("camNext").onclick=()=>{
+  if(camPoints.length!==2) return;
+  if(camPhase==="ref"){
+    refPxLen=distancePx(camPoints[0],camPoints[1]);
+    camPhase="target"; camPoints=[];
+    document.getElementById("camInstruction").textContent=t("tapTarget");
+    document.getElementById("camStepTitle").textContent=t("tapTarget");
+    drawCanvas(); updateCamButtons();
+  } else {
+    // show assign step
+    document.getElementById("camStepCanvas").style.display="none";
+    document.getElementById("camStepAssign").style.display="flex";
+    document.getElementById("camFinal").textContent=lastResultCm.toFixed(1)+" cm";
+  }
+};
+function assignAndClose(field){
+  const val=lastResultCm.toFixed(1);
+  if(field==="width") document.getElementById("mWidth").value=val;
+  if(field==="height") document.getElementById("mHeight").value=val;
+  if(field==="depth") document.getElementById("mDepth").value=val;
+  camModal.classList.remove("active");
+}
+document.getElementById("assignWidth").onclick=()=>assignAndClose("width");
+document.getElementById("assignHeight").onclick=()=>assignAndClose("height");
+document.getElementById("assignDepth").onclick=()=>assignAndClose("depth");
+document.getElementById("camRemeasure").onclick=()=>{
+  camPhase="target"; camPoints=[];
+  document.getElementById("camStepAssign").style.display="none";
+  document.getElementById("camStepCanvas").style.display="flex";
+  document.getElementById("camInstruction").textContent=t("tapTarget");
+  drawCanvas(); updateCamButtons();
+};
+
+// ============ FABRIC GALLERY ============
+let fabCategories=[], fabrics=[], activeCat="all";
+function catName(c){ if(!c) return ""; return c["name_"+currentLang]||c.name_ar||c.name_en||""; }
+function fabName(f){ return f["name_"+currentLang]||f.name_ar||f.name_en||f.code||"—"; }
+function ytEmbed(url){
+  if(!url) return null;
+  let id=null;
+  const m1=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/);
+  if(m1) id=m1[1];
+  return id ? "https://www.youtube.com/embed/"+id : null;
+}
+async function loadGallery(){
+  // admin gear
+  document.getElementById("adminFabBtn").style.display = (currentProfile?.role==="admin") ? "flex" : "none";
+  const [catRes,fabRes]=await Promise.all([
+    sb.from("fabric_categories").select("*").order("sort_order",{ascending:true}),
+    sb.from("fabrics").select("*").eq("available",true).order("sort_order",{ascending:true})
+  ]);
+  fabCategories=catRes.data||[];
+  fabrics=fabRes.data||[];
+  renderCatTabs();
+  renderFabrics();
+}
+function renderCatTabs(){
+  const wrap=document.getElementById("catTabs");
+  wrap.innerHTML="";
+  const allTab=document.createElement("button");
+  allTab.className="cat-tab"+(activeCat==="all"?" active":"");
+  allTab.textContent=t("allCats");
+  allTab.onclick=()=>{activeCat="all";renderCatTabs();renderFabrics();};
+  wrap.appendChild(allTab);
+  fabCategories.forEach(c=>{
+    const tab=document.createElement("button");
+    tab.className="cat-tab"+(activeCat===c.id?" active":"");
+    tab.textContent=catName(c);
+    tab.onclick=()=>{activeCat=c.id;renderCatTabs();renderFabrics();};
+    wrap.appendChild(tab);
+  });
+}
+function renderFabrics(){
+  const grid=document.getElementById("fabricGrid"), empty=document.getElementById("fabricEmpty");
+  const list = activeCat==="all" ? fabrics : fabrics.filter(f=>f.category_id===activeCat);
+  grid.innerHTML="";
+  if(list.length===0){ empty.style.display="block"; grid.style.display="none"; return; }
+  empty.style.display="none"; grid.style.display="grid";
+  list.forEach(f=>{
+    const card=document.createElement("div");
+    card.className="fab-card";
+    const img = f.image_url ? `<img class="fab-img" src="${f.image_url}" loading="lazy">` : `<div class="fab-noimg">🧵</div>`;
+    const vid = f.video_url ? `<div class="fab-vid">${t("watchVideo")}</div>` : "";
+    card.innerHTML=`${img}<div class="fab-info"><div class="fab-name">${escapeHtml(fabName(f))}</div><div class="fab-code">${escapeHtml(f.code||"")}</div>${vid}</div>`;
+    card.onclick=()=>openFabric(f);
+    grid.appendChild(card);
+  });
+}
+const fabricModal=document.getElementById("fabricModal");
+function openFabric(f){
+  const c=document.getElementById("fabModalContent");
+  const embed=ytEmbed(f.video_url);
+  let html=`<div class="fab-detail">`;
+  if(f.image_url) html+=`<img class="fab-detail-img" src="${f.image_url}">`;
+  html+=`<h3>${escapeHtml(fabName(f))}</h3>`;
+  if(f.code) html+=`<div class="code">${escapeHtml(f.code)}</div>`;
+  const desc=f["description_"+currentLang]||f.description_ar||"";
+  if(desc) html+=`<p style="font-size:14px;color:#555;line-height:1.6;">${escapeHtml(desc)}</p>`;
+  if(embed) html+=`<iframe class="fab-detail-vid" src="${embed}" allowfullscreen></iframe>`;
+  html+=`</div>`;
+  c.innerHTML=html;
+  fabricModal.classList.add("active");
+}
+document.getElementById("fabModalClose").onclick=()=>fabricModal.classList.remove("active");
+
+// ----- admin panel -----
+document.getElementById("adminFabBtn").onclick=()=>{ showScreen("admin"); renderAdminCats(); fillFabCatSelect(); };
+document.getElementById("adminBack").onclick=()=>{ showScreen("gallery"); loadGallery(); };
+
+function renderAdminCats(){
+  const wrap=document.getElementById("adminCatList");
+  wrap.innerHTML="";
+  fabCategories.forEach(c=>{
+    const chip=document.createElement("div");
+    chip.className="admin-cat-chip";
+    chip.innerHTML=`<span>${escapeHtml(catName(c))}</span><button data-id="${c.id}">✕</button>`;
+    chip.querySelector("button").onclick=()=>delCategory(c.id);
+    wrap.appendChild(chip);
+  });
+}
+function fillFabCatSelect(){
+  const sel=document.getElementById("fabCat");
+  sel.innerHTML="";
+  fabCategories.forEach(c=>{
+    const o=document.createElement("option"); o.value=c.id; o.textContent=catName(c); sel.appendChild(o);
+  });
+}
+document.getElementById("addCatBtn").onclick=async()=>{
+  const ar=newCatAr.value.trim(), fa=newCatFa.value.trim(), en=newCatEn.value.trim();
+  if(!ar && !en){ return; }
+  const btn=document.getElementById("addCatBtn"); btn.disabled=true;
+  try{
+    await sb.from("fabric_categories").insert({name_ar:ar,name_fa:fa,name_en:en,sort_order:fabCategories.length});
+    newCatAr.value="";newCatFa.value="";newCatEn.value="";
+    await loadGallery(); renderAdminCats(); fillFabCatSelect();
+  }catch(e){ alert(e.message); }
+  finally{ btn.disabled=false; }
+};
+async function delCategory(id){
+  if(!confirm(t("confirmDelCat"))) return;
+  try{ await sb.from("fabric_categories").delete().eq("id",id); await loadGallery(); renderAdminCats(); fillFabCatSelect(); }catch(e){ alert(e.message); }
+}
+
+// fabric image preview
+let fabImgFile=null;
+document.getElementById("fabImageFile").onchange=function(e){
+  fabImgFile=e.target.files[0];
+  if(fabImgFile){
+    document.getElementById("fabImgLabel").textContent=fabImgFile.name.slice(0,24);
+    const prev=document.getElementById("fabImgPreview");
+    prev.style.display="block";
+    prev.querySelector("img").src=URL.createObjectURL(fabImgFile);
+  }
+};
+document.getElementById("addFabBtn").onclick=async()=>{
+  const fm=document.getElementById("fabMsg");
+  fm.className="msg";
+  const nameAr=fabNameAr.value.trim(), nameFa=fabNameFa.value.trim(), nameEn=fabNameEn.value.trim();
+  if(!nameAr && !nameEn){ fm.textContent=t("needName"); fm.className="msg error"; return; }
+  if(!fabImgFile){ fm.textContent=t("needImage"); fm.className="msg error"; return; }
+  const btn=document.getElementById("addFabBtn"); btn.disabled=true; btn.innerHTML='<span class="spinner"></span>';
+  try{
+    // upload image
+    const ext=fabImgFile.name.split(".").pop().toLowerCase();
+    const path=`fabric_${Date.now()}.${ext}`;
+    const {error:upErr}=await sb.storage.from("fabrics").upload(path,fabImgFile,{cacheControl:"3600",upsert:false});
+    if(upErr) throw upErr;
+    const {data:urlData}=sb.storage.from("fabrics").getPublicUrl(path);
+    const imageUrl=urlData.publicUrl;
+    // insert fabric
+    const {error:insErr}=await sb.from("fabrics").insert({
+      category_id:fabCat.value||null, code:fabCode.value.trim(),
+      name_ar:nameAr, name_fa:nameFa, name_en:nameEn,
+      image_url:imageUrl, video_url:fabVideo.value.trim()||null,
+      available:true, sort_order:fabrics.length
+    });
+    if(insErr) throw insErr;
+    fm.textContent=t("fabSaved"); fm.className="msg success";
+    fabNameAr.value="";fabNameFa.value="";fabNameEn.value="";fabCode.value="";fabVideo.value="";
+    fabImgFile=null; document.getElementById("fabImgLabel").textContent=t("chooseImage");
+    document.getElementById("fabImgPreview").style.display="none";
+    document.getElementById("fabImageFile").value="";
+    await loadGallery();
+  }catch(err){ fm.textContent=err.message||t("genericError"); fm.className="msg error"; }
+  finally{ btn.disabled=false; btn.textContent=t("saveFabric"); }
+};
+
+// ============ SESSION ROUTING ============
+async function onLogin(session){
+  currentSession=session;
+  await loadProfile();
+  await renderProjects();
+  showScreen("projects");
+}
+function onLogout(){
+  currentSession=null; currentProfile=null; currentProject=null;
+  showScreen("auth");
+  loginForm.style.display="block"; registerForm.style.display="none";
+}
+sb.auth.onAuthStateChange((event,session)=>{ if(session) onLogin(session); else onLogout(); });
+
+(async()=>{
+  const {data:{session}}=await sb.auth.getSession();
+  if(session) await onLogin(session); else onLogout();
+  document.getElementById("loadingScreen").style.display="none";
+})();
+
+applyLang("ar");
+</script>
+</body>
+</html>

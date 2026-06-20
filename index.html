@@ -124,6 +124,37 @@
   .cam-btns{display:flex;gap:10px;}
   .cam-btns .btn{margin-top:0;}
   .cam-final{background:var(--brand);color:#fff;border-radius:14px;padding:24px;text-align:center;font-size:30px;font-weight:700;}
+
+  /* tab bar */
+  .tabbar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;z-index:45;box-shadow:0 -2px 12px rgba(0,0,0,.06);}
+  .tab-item{flex:1;background:none;border:none;padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;color:var(--muted);}
+  .tab-item.active{color:var(--brand);}
+  .tab-ico{font-size:21px;}
+  .tab-lbl{font-size:11px;font-weight:600;}
+
+  /* gallery */
+  .cat-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;margin-bottom:6px;}
+  .cat-tab{white-space:nowrap;padding:7px 16px;border-radius:20px;border:1px solid var(--line);background:#fff;font-size:13px;cursor:pointer;color:#555;flex-shrink:0;}
+  .cat-tab.active{background:var(--brand);color:#fff;border-color:var(--brand);}
+  .fabric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+  .fab-card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 3px 12px rgba(0,0,0,.06);cursor:pointer;border:1px solid var(--line);}
+  .fab-card .fab-img{width:100%;aspect-ratio:1;object-fit:cover;background:var(--soft);display:block;}
+  .fab-card .fab-noimg{width:100%;aspect-ratio:1;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:34px;}
+  .fab-card .fab-info{padding:10px;}
+  .fab-card .fab-name{font-size:14px;font-weight:600;}
+  .fab-card .fab-code{font-size:12px;color:var(--muted);}
+  .fab-card .fab-vid{font-size:11px;color:var(--brand);margin-top:3px;}
+
+  .admin-section{margin-bottom:24px;}
+  .admin-section h4{font-size:15px;color:var(--brand-dark);margin-bottom:10px;}
+  .admin-cat-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+  .admin-cat-chip{background:#fff;border:1px solid var(--line);border-radius:20px;padding:6px 12px;font-size:13px;display:flex;align-items:center;gap:8px;}
+  .admin-cat-chip button{background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px;padding:0;}
+
+  .fab-detail-img{width:100%;border-radius:12px;max-height:280px;object-fit:cover;}
+  .fab-detail-vid{width:100%;aspect-ratio:16/9;border-radius:12px;margin-top:10px;border:none;}
+  .fab-detail h3{font-size:20px;margin:12px 0 4px;color:var(--brand-dark);}
+  .fab-detail .code{color:var(--muted);font-size:13px;margin-bottom:8px;}
 </style>
 </head>
 <body>
@@ -222,10 +253,86 @@
   </div>
 
   <div class="total-box">
-    <div class="t-area" id="totalArea">0.00 م²</div>
-    <div class="t-label" data-i18n="totalArea">إجمالي المساحة</div>
-  </div>
   <div style="height:30px;"></div>
+</div>
+
+<!-- ===== FABRIC GALLERY ===== -->
+<div class="screen" id="galleryScreen">
+  <div class="page-head">
+    <h2 data-i18n="fabricGallery">معرض الأقمشة</h2>
+    <button class="icon-btn" id="adminFabBtn" style="background:var(--brand-dark);display:none;" title="admin">⚙</button>
+  </div>
+  <div id="catTabs" class="cat-tabs"></div>
+  <div id="fabricGrid" class="fabric-grid"></div>
+  <div id="fabricEmpty" class="empty" style="display:none;">
+    <div class="big">🧵</div>
+    <p data-i18n="noFabrics">لا توجد أقمشة بعد</p>
+  </div>
+  <div style="height:80px;"></div>
+</div>
+
+<!-- ===== ADMIN FABRIC PANEL ===== -->
+<div class="screen" id="adminScreen">
+  <div class="page-head">
+    <button class="back-btn" id="adminBack">→ <span data-i18n="back">رجوع</span></button>
+    <h2 data-i18n="manageGallery">إدارة المعرض</h2>
+  </div>
+
+  <div class="admin-section">
+    <h4 data-i18n="categories">الفئات</h4>
+    <div id="adminCatList" class="admin-cat-list"></div>
+    <div class="add-measure-box" style="border-color:var(--brand);">
+      <div class="field"><label data-i18n="catNameAr">اسم الفئة (عربي)</label><input type="text" id="newCatAr"></div>
+      <div class="row2">
+        <div class="field"><label data-i18n="catNameFa">فارسی</label><input type="text" id="newCatFa"></div>
+        <div class="field"><label data-i18n="catNameEn">English</label><input type="text" id="newCatEn"></div>
+      </div>
+      <button class="btn" id="addCatBtn" data-i18n="addCategory">إضافة فئة</button>
+    </div>
+  </div>
+
+  <div class="admin-section">
+    <h4 data-i18n="addFabric">إضافة قماش</h4>
+    <div class="add-measure-box" style="border-color:var(--brand);">
+      <div id="fabMsg" class="msg"></div>
+      <div class="field"><label data-i18n="fabCategory">الفئة</label><select id="fabCat"></select></div>
+      <div class="field"><label data-i18n="fabCode">الكود / الرقم</label><input type="text" id="fabCode" placeholder="مثال: V-102"></div>
+      <div class="field"><label data-i18n="fabNameAr">اسم القماش (عربي)</label><input type="text" id="fabNameAr"></div>
+      <div class="row2">
+        <div class="field"><label>فارسی</label><input type="text" id="fabNameFa"></div>
+        <div class="field"><label>English</label><input type="text" id="fabNameEn"></div>
+      </div>
+      <div class="field">
+        <label data-i18n="fabImage">صورة القماش</label>
+        <label class="btn btn-outline" style="display:block;text-align:center;cursor:pointer;margin-top:0;">
+          <span id="fabImgLabel" data-i18n="chooseImage">📷 اختر صورة</span>
+          <input type="file" id="fabImageFile" accept="image/*" style="display:none;">
+        </label>
+        <div id="fabImgPreview" style="margin-top:8px;display:none;"><img style="max-width:100%;border-radius:8px;max-height:160px;"></div>
+      </div>
+      <div class="field"><label data-i18n="fabVideo">رابط فيديو يوتيوب (اختياري)</label><input type="text" id="fabVideo" placeholder="https://youtu.be/..." dir="ltr"></div>
+      <button class="btn" id="addFabBtn" data-i18n="saveFabric">حفظ القماش</button>
+    </div>
+  </div>
+  <div style="height:40px;"></div>
+</div>
+
+<!-- ===== FABRIC DETAIL MODAL ===== -->
+<div class="modal-overlay" id="fabricModal">
+  <div class="modal" style="max-width:460px;">
+    <div id="fabModalContent"></div>
+    <button class="btn btn-outline" id="fabModalClose" data-i18n="close" style="margin-top:14px;">إغلاق</button>
+  </div>
+</div>
+
+<!-- ===== BOTTOM TAB BAR ===== -->
+<div class="tabbar" id="tabbar" style="display:none;">
+  <button class="tab-item active" data-tab="projects">
+    <span class="tab-ico">📐</span><span class="tab-lbl" data-i18n="tabProjects">المشاريع</span>
+  </button>
+  <button class="tab-item" data-tab="gallery">
+    <span class="tab-ico">🧵</span><span class="tab-lbl" data-i18n="tabGallery">الأقمشة</span>
+  </button>
 </div>
 
 <!-- ===== NEW PROJECT MODAL ===== -->
@@ -333,7 +440,14 @@ const I18N = {
     photoHint:"ضع المرجع (ورقة A4) على الجدار والتقط صورة من الأمام مباشرة",
     tapRef:"انقر على طرفي المرجع (نقطتان)", tapTarget:"انقر على طرفي ما تريد قياسه (نقطتان)",
     reset:"إعادة", next:"التالي", assignTo:"أضف هذا القياس إلى:", asWidth:"العرض", asHeight:"الارتفاع", asDepth:"العمق",
-    measureAgain:"قياس آخر", refSet:"تم تحديد المرجع ✓", customRefReq:"أدخل طول المرجع"
+    measureAgain:"قياس آخر", refSet:"تم تحديد المرجع ✓", customRefReq:"أدخل طول المرجع",
+    fabricGallery:"معرض الأقمشة", noFabrics:"لا توجد أقمشة بعد", tabProjects:"المشاريع", tabGallery:"الأقمشة",
+    manageGallery:"إدارة المعرض", categories:"الفئات", catNameAr:"اسم الفئة (عربي)", catNameFa:"فارسی", catNameEn:"English",
+    addCategory:"إضافة فئة", addFabric:"إضافة قماش", fabCategory:"الفئة", fabCode:"الكود / الرقم", fabNameAr:"اسم القماش (عربي)",
+    fabImage:"صورة القماش", chooseImage:"📷 اختر صورة", fabVideo:"رابط فيديو يوتيوب (اختياري)", saveFabric:"حفظ القماش",
+    close:"إغلاق", allCats:"الكل", watchVideo:"▶ شاهد الفيديو", uploading:"جاري الرفع...",
+    fabSaved:"تم حفظ القماش ✓", needImage:"يرجى اختيار صورة", needName:"يرجى إدخال الاسم", confirmDelFab:"حذف هذا القماش؟",
+    confirmDelCat:"حذف هذه الفئة؟", selectFabric:"اختر هذا القماش", fabricSelected:"تم اختيار القماش ✓", deleteBtn:"حذف"
   },
   fa:{
     appTitle:"دار الأصالة", loginTitle:"ورود", loginSub:"ایمیل و رمز عبور خود را وارد کنید",
@@ -356,7 +470,14 @@ const I18N = {
     photoHint:"مرجع (برگه A4) را روی دیوار بچسبان و از روبه‌رو عکس بگیر",
     tapRef:"دو سر مرجع را لمس کن (دو نقطه)", tapTarget:"دو سر چیزی که می‌خواهی اندازه بگیری را لمس کن (دو نقطه)",
     reset:"از نو", next:"بعدی", assignTo:"این اندازه را اضافه کن به:", asWidth:"عرض", asHeight:"ارتفاع", asDepth:"عمق",
-    measureAgain:"اندازه‌گیری دیگر", refSet:"مرجع تعیین شد ✓", customRefReq:"طول مرجع را وارد کن"
+    measureAgain:"اندازه‌گیری دیگر", refSet:"مرجع تعیین شد ✓", customRefReq:"طول مرجع را وارد کن",
+    fabricGallery:"گالری پارچه‌ها", noFabrics:"هنوز پارچه‌ای نیست", tabProjects:"پروژه‌ها", tabGallery:"پارچه‌ها",
+    manageGallery:"مدیریت گالری", categories:"دسته‌بندی‌ها", catNameAr:"نام دسته (عربی)", catNameFa:"فارسی", catNameEn:"English",
+    addCategory:"افزودن دسته", addFabric:"افزودن پارچه", fabCategory:"دسته", fabCode:"کد / شماره", fabNameAr:"نام پارچه (عربی)",
+    fabImage:"عکس پارچه", chooseImage:"📷 انتخاب عکس", fabVideo:"لینک ویدیوی یوتیوب (اختیاری)", saveFabric:"ذخیره پارچه",
+    close:"بستن", allCats:"همه", watchVideo:"▶ تماشای ویدیو", uploading:"در حال آپلود...",
+    fabSaved:"پارچه ذخیره شد ✓", needImage:"لطفاً یک عکس انتخاب کن", needName:"لطفاً نام را وارد کن", confirmDelFab:"این پارچه حذف شود؟",
+    confirmDelCat:"این دسته حذف شود؟", selectFabric:"انتخاب این پارچه", fabricSelected:"پارچه انتخاب شد ✓", deleteBtn:"حذف"
   },
   en:{
     appTitle:"Dar Al-Asala", loginTitle:"Login", loginSub:"Enter your email and password",
@@ -379,7 +500,14 @@ const I18N = {
     photoHint:"Place the reference (A4 paper) on the wall and shoot straight from the front",
     tapRef:"Tap the two ends of the reference (2 points)", tapTarget:"Tap the two ends of what you're measuring (2 points)",
     reset:"Reset", next:"Next", assignTo:"Add this measurement to:", asWidth:"Width", asHeight:"Height", asDepth:"Depth",
-    measureAgain:"Measure again", refSet:"Reference set ✓", customRefReq:"Enter reference length"
+    measureAgain:"Measure again", refSet:"Reference set ✓", customRefReq:"Enter reference length",
+    fabricGallery:"Fabric Gallery", noFabrics:"No fabrics yet", tabProjects:"Projects", tabGallery:"Fabrics",
+    manageGallery:"Manage Gallery", categories:"Categories", catNameAr:"Category name (Arabic)", catNameFa:"Persian", catNameEn:"English",
+    addCategory:"Add category", addFabric:"Add fabric", fabCategory:"Category", fabCode:"Code / Number", fabNameAr:"Fabric name (Arabic)",
+    fabImage:"Fabric image", chooseImage:"📷 Choose image", fabVideo:"YouTube video link (optional)", saveFabric:"Save fabric",
+    close:"Close", allCats:"All", watchVideo:"▶ Watch video", uploading:"Uploading...",
+    fabSaved:"Fabric saved ✓", needImage:"Please choose an image", needName:"Please enter a name", confirmDelFab:"Delete this fabric?",
+    confirmDelCat:"Delete this category?", selectFabric:"Select this fabric", fabricSelected:"Fabric selected ✓", deleteBtn:"Delete"
   }
 };
 let currentLang = "ar";
@@ -400,6 +528,7 @@ function applyLang(lang){
   // re-render dynamic content
   if(currentProject) renderMeasures();
   if(currentSession) renderProjects();
+  if(typeof galleryScreen!=="undefined" && galleryScreen.classList.contains("active")){ renderCatTabs(); renderFabrics(); }
 }
 document.querySelectorAll(".lang-switch button").forEach(b=>b.addEventListener("click", ()=>applyLang(b.dataset.lang)));
 
@@ -451,11 +580,28 @@ let currentSession=null, currentProfile=null, currentProject=null, measures=[];
 const authWrap=document.getElementById("authWrap");
 const projectsScreen=document.getElementById("projectsScreen");
 const detailScreen=document.getElementById("detailScreen");
+const galleryScreen=document.getElementById("galleryScreen");
+const adminScreen=document.getElementById("adminScreen");
+const tabbar=document.getElementById("tabbar");
 function showScreen(name){
   authWrap.style.display = name==="auth" ? "flex" : "none";
   projectsScreen.classList.toggle("active", name==="projects");
   detailScreen.classList.toggle("active", name==="detail");
+  galleryScreen.classList.toggle("active", name==="gallery");
+  adminScreen.classList.toggle("active", name==="admin");
+  // tab bar visible only on main tabs
+  tabbar.style.display = (name==="projects"||name==="gallery") ? "flex" : "none";
+  document.querySelectorAll(".tab-item").forEach(t=>t.classList.toggle("active", t.dataset.tab===name));
 }
+// tab switching
+document.querySelectorAll(".tab-item").forEach(tab=>{
+  tab.onclick=()=>{
+    const target=tab.dataset.tab;
+    showScreen(target);
+    if(target==="gallery") loadGallery();
+    if(target==="projects") renderProjects();
+  };
+});
 
 // ============ PROFILE / PROJECTS ============
 async function loadProfile(){
@@ -731,6 +877,160 @@ document.getElementById("camRemeasure").onclick=()=>{
   document.getElementById("camStepCanvas").style.display="flex";
   document.getElementById("camInstruction").textContent=t("tapTarget");
   drawCanvas(); updateCamButtons();
+};
+
+// ============ FABRIC GALLERY ============
+let fabCategories=[], fabrics=[], activeCat="all";
+function catName(c){ if(!c) return ""; return c["name_"+currentLang]||c.name_ar||c.name_en||""; }
+function fabName(f){ return f["name_"+currentLang]||f.name_ar||f.name_en||f.code||"—"; }
+function ytEmbed(url){
+  if(!url) return null;
+  let id=null;
+  const m1=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/);
+  if(m1) id=m1[1];
+  return id ? "https://www.youtube.com/embed/"+id : null;
+}
+async function loadGallery(){
+  // admin gear
+  document.getElementById("adminFabBtn").style.display = (currentProfile?.role==="admin") ? "flex" : "none";
+  const [catRes,fabRes]=await Promise.all([
+    sb.from("fabric_categories").select("*").order("sort_order",{ascending:true}),
+    sb.from("fabrics").select("*").eq("available",true).order("sort_order",{ascending:true})
+  ]);
+  fabCategories=catRes.data||[];
+  fabrics=fabRes.data||[];
+  renderCatTabs();
+  renderFabrics();
+}
+function renderCatTabs(){
+  const wrap=document.getElementById("catTabs");
+  wrap.innerHTML="";
+  const allTab=document.createElement("button");
+  allTab.className="cat-tab"+(activeCat==="all"?" active":"");
+  allTab.textContent=t("allCats");
+  allTab.onclick=()=>{activeCat="all";renderCatTabs();renderFabrics();};
+  wrap.appendChild(allTab);
+  fabCategories.forEach(c=>{
+    const tab=document.createElement("button");
+    tab.className="cat-tab"+(activeCat===c.id?" active":"");
+    tab.textContent=catName(c);
+    tab.onclick=()=>{activeCat=c.id;renderCatTabs();renderFabrics();};
+    wrap.appendChild(tab);
+  });
+}
+function renderFabrics(){
+  const grid=document.getElementById("fabricGrid"), empty=document.getElementById("fabricEmpty");
+  const list = activeCat==="all" ? fabrics : fabrics.filter(f=>f.category_id===activeCat);
+  grid.innerHTML="";
+  if(list.length===0){ empty.style.display="block"; grid.style.display="none"; return; }
+  empty.style.display="none"; grid.style.display="grid";
+  list.forEach(f=>{
+    const card=document.createElement("div");
+    card.className="fab-card";
+    const img = f.image_url ? `<img class="fab-img" src="${f.image_url}" loading="lazy">` : `<div class="fab-noimg">🧵</div>`;
+    const vid = f.video_url ? `<div class="fab-vid">${t("watchVideo")}</div>` : "";
+    card.innerHTML=`${img}<div class="fab-info"><div class="fab-name">${escapeHtml(fabName(f))}</div><div class="fab-code">${escapeHtml(f.code||"")}</div>${vid}</div>`;
+    card.onclick=()=>openFabric(f);
+    grid.appendChild(card);
+  });
+}
+const fabricModal=document.getElementById("fabricModal");
+function openFabric(f){
+  const c=document.getElementById("fabModalContent");
+  const embed=ytEmbed(f.video_url);
+  let html=`<div class="fab-detail">`;
+  if(f.image_url) html+=`<img class="fab-detail-img" src="${f.image_url}">`;
+  html+=`<h3>${escapeHtml(fabName(f))}</h3>`;
+  if(f.code) html+=`<div class="code">${escapeHtml(f.code)}</div>`;
+  const desc=f["description_"+currentLang]||f.description_ar||"";
+  if(desc) html+=`<p style="font-size:14px;color:#555;line-height:1.6;">${escapeHtml(desc)}</p>`;
+  if(embed) html+=`<iframe class="fab-detail-vid" src="${embed}" allowfullscreen></iframe>`;
+  html+=`</div>`;
+  c.innerHTML=html;
+  fabricModal.classList.add("active");
+}
+document.getElementById("fabModalClose").onclick=()=>fabricModal.classList.remove("active");
+
+// ----- admin panel -----
+document.getElementById("adminFabBtn").onclick=()=>{ showScreen("admin"); renderAdminCats(); fillFabCatSelect(); };
+document.getElementById("adminBack").onclick=()=>{ showScreen("gallery"); loadGallery(); };
+
+function renderAdminCats(){
+  const wrap=document.getElementById("adminCatList");
+  wrap.innerHTML="";
+  fabCategories.forEach(c=>{
+    const chip=document.createElement("div");
+    chip.className="admin-cat-chip";
+    chip.innerHTML=`<span>${escapeHtml(catName(c))}</span><button data-id="${c.id}">✕</button>`;
+    chip.querySelector("button").onclick=()=>delCategory(c.id);
+    wrap.appendChild(chip);
+  });
+}
+function fillFabCatSelect(){
+  const sel=document.getElementById("fabCat");
+  sel.innerHTML="";
+  fabCategories.forEach(c=>{
+    const o=document.createElement("option"); o.value=c.id; o.textContent=catName(c); sel.appendChild(o);
+  });
+}
+document.getElementById("addCatBtn").onclick=async()=>{
+  const ar=newCatAr.value.trim(), fa=newCatFa.value.trim(), en=newCatEn.value.trim();
+  if(!ar && !en){ return; }
+  const btn=document.getElementById("addCatBtn"); btn.disabled=true;
+  try{
+    await sb.from("fabric_categories").insert({name_ar:ar,name_fa:fa,name_en:en,sort_order:fabCategories.length});
+    newCatAr.value="";newCatFa.value="";newCatEn.value="";
+    await loadGallery(); renderAdminCats(); fillFabCatSelect();
+  }catch(e){ alert(e.message); }
+  finally{ btn.disabled=false; }
+};
+async function delCategory(id){
+  if(!confirm(t("confirmDelCat"))) return;
+  try{ await sb.from("fabric_categories").delete().eq("id",id); await loadGallery(); renderAdminCats(); fillFabCatSelect(); }catch(e){ alert(e.message); }
+}
+
+// fabric image preview
+let fabImgFile=null;
+document.getElementById("fabImageFile").onchange=function(e){
+  fabImgFile=e.target.files[0];
+  if(fabImgFile){
+    document.getElementById("fabImgLabel").textContent=fabImgFile.name.slice(0,24);
+    const prev=document.getElementById("fabImgPreview");
+    prev.style.display="block";
+    prev.querySelector("img").src=URL.createObjectURL(fabImgFile);
+  }
+};
+document.getElementById("addFabBtn").onclick=async()=>{
+  const fm=document.getElementById("fabMsg");
+  fm.className="msg";
+  const nameAr=fabNameAr.value.trim(), nameFa=fabNameFa.value.trim(), nameEn=fabNameEn.value.trim();
+  if(!nameAr && !nameEn){ fm.textContent=t("needName"); fm.className="msg error"; return; }
+  if(!fabImgFile){ fm.textContent=t("needImage"); fm.className="msg error"; return; }
+  const btn=document.getElementById("addFabBtn"); btn.disabled=true; btn.innerHTML='<span class="spinner"></span>';
+  try{
+    // upload image
+    const ext=fabImgFile.name.split(".").pop().toLowerCase();
+    const path=`fabric_${Date.now()}.${ext}`;
+    const {error:upErr}=await sb.storage.from("fabrics").upload(path,fabImgFile,{cacheControl:"3600",upsert:false});
+    if(upErr) throw upErr;
+    const {data:urlData}=sb.storage.from("fabrics").getPublicUrl(path);
+    const imageUrl=urlData.publicUrl;
+    // insert fabric
+    const {error:insErr}=await sb.from("fabrics").insert({
+      category_id:fabCat.value||null, code:fabCode.value.trim(),
+      name_ar:nameAr, name_fa:nameFa, name_en:nameEn,
+      image_url:imageUrl, video_url:fabVideo.value.trim()||null,
+      available:true, sort_order:fabrics.length
+    });
+    if(insErr) throw insErr;
+    fm.textContent=t("fabSaved"); fm.className="msg success";
+    fabNameAr.value="";fabNameFa.value="";fabNameEn.value="";fabCode.value="";fabVideo.value="";
+    fabImgFile=null; document.getElementById("fabImgLabel").textContent=t("chooseImage");
+    document.getElementById("fabImgPreview").style.display="none";
+    document.getElementById("fabImageFile").value="";
+    await loadGallery();
+  }catch(err){ fm.textContent=err.message||t("genericError"); fm.className="msg error"; }
+  finally{ btn.disabled=false; btn.textContent=t("saveFabric"); }
 };
 
 // ============ SESSION ROUTING ============
